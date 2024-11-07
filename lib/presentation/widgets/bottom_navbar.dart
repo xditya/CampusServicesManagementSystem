@@ -1,6 +1,3 @@
-import 'package:csms/presentation/screens/dashboard.dart';
-import 'package:csms/presentation/screens/profile.dart';
-import 'package:csms/presentation/screens/wallet.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatefulWidget {
@@ -14,42 +11,73 @@ class BottomNavBarState extends State<BottomNavBar> {
   int currentPageIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _setCurrentPageIndex();
+  }
+
+  void _setCurrentPageIndex() {
+    final routeName = ModalRoute.of(context)?.settings.name;
+    switch (routeName) {
+      case '/':
+        currentPageIndex = 0;
+        break;
+      case '/wallet':
+        currentPageIndex = 1;
+        break;
+      case '/profile':
+        currentPageIndex = 2;
+        break;
+      default:
+        currentPageIndex = 0;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    const items = <NavigationDestination>[
+      NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: 'Dashboard',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.account_balance_wallet_outlined),
+        selectedIcon: Icon(Icons.account_balance_wallet),
+        label: 'Wallet',
+      ),
+      NavigationDestination(
+        icon: Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person),
+        label: 'Profile',
+      ),
+    ];
     return NavigationBar(
-      onDestinationSelected: (int index) {
-        setState(() {
-          if (index == 0 && currentPageIndex != 0) {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (context) => const DashboardScreen()));
-          } else if (index == 1 && currentPageIndex != 1) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const WalletScreen()));
-          } else if (index == 2 && currentPageIndex != 2) {
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const ProfileScreen()));
-          } else {
-            currentPageIndex = index;
-          }
+        destinations: items,
+        selectedIndex: currentPageIndex,
+        onDestinationSelected: (index) {
+          _navigateToPage(context, index);
         });
-      },
-      selectedIndex: currentPageIndex,
-      destinations: const <Widget>[
-        NavigationDestination(
-          selectedIcon: Icon(Icons.home),
-          icon: Icon(Icons.home_outlined),
-          label: 'Home',
-        ),
-        NavigationDestination(
-          selectedIcon: Icon(Icons.account_balance_wallet),
-          icon: Icon(Icons.account_balance_wallet_outlined),
-          label: 'Wallet',
-        ),
-        NavigationDestination(
-          selectedIcon: Icon(Icons.person),
-          icon: Icon(Icons.person_outline),
-          label: "Profile",
-        ),
-      ],
-    );
+  }
+
+  void _navigateToPage(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/wallet');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/profile');
+        break;
+      default:
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    }
   }
 }
