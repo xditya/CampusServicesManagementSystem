@@ -68,7 +68,8 @@ class BottomNavBarState extends State<BottomNavBar> {
   void _navigateToPage(BuildContext context, int index) {
     switch (index) {
       case 0:
-        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/dashboard', (route) => false);
         break;
       case 1:
         Navigator.pushReplacementNamed(context, '/wallet');
