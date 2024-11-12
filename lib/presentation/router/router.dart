@@ -1,5 +1,7 @@
+import 'package:csms/helper/config.dart';
 import 'package:csms/presentation/screens/dashboard.dart';
 import 'package:csms/presentation/screens/error.dart';
+import 'package:csms/presentation/screens/login.dart';
 import 'package:csms/presentation/screens/profile.dart';
 import 'package:csms/presentation/screens/settings.dart';
 import 'package:csms/presentation/screens/wallet.dart';
@@ -14,9 +16,17 @@ class AppRouter {
       '/',
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
-          return const DashboardScreen();
+          return const LoginScreen();
         },
       ),
+      transitionType: TransitionType.fadeIn,
+    );
+    router.define(
+      '/dashboard',
+      handler: Handler(
+          handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+        return const DashboardScreen();
+      }),
       transitionType: TransitionType.fadeIn,
     );
     router.define(

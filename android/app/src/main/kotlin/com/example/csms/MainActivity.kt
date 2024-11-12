@@ -1,4 +1,4 @@
-package com.example.csms
+package me.xditya.csms
 
 import io.flutter.embedding.android.FlutterActivity
 
