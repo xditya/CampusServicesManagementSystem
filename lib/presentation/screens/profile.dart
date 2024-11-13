@@ -1,78 +1,51 @@
+import 'package:flutter/material.dart';
 import 'package:csms/helper/config.dart';
 import 'package:csms/helper/getRegisterId.dart';
 import 'package:csms/presentation/widgets/bottom_navbar.dart';
-import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  Widget buildProfilePicture(BuildContext context, session) {
-    final firstNameInitial = session.name.split(' ').first[0];
-    final lastNameInitial = session.name.split(' ').last[0];
-    return CircleAvatar(
-      radius: 50,
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      child: Text(
-        '$firstNameInitial$lastNameInitial',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onSecondary,
-        ),
-      ),
-    );
-  }
-
-  Widget buildProfileCard(session, BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+  Widget _buildHeader(BuildContext context, dynamic session) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.35,
+      child: SafeArea(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            buildProfilePicture(context, session),
+            Hero(
+              tag: 'profile_picture',
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    width: 3,
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  child: Text(
+                    '${session.name.split(' ').first[0]}${session.name.split(' ').last[0]}',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             Text(
               session.name,
-              style: TextStyle(
-                fontSize: 22,
+              style: const TextStyle(
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
+                color: Colors.white,
               ),
-            ),
-            const SizedBox(height: 4),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.email, color: colorScheme.secondary, size: 20),
-              const SizedBox(width: 4),
-              Text(
-                session.email,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              )
-            ]),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.assignment_ind,
-                    color: colorScheme.secondary, size: 20),
-                const SizedBox(width: 4),
-                Text(
-                  'Registration Number: ${getRegisterIdFromEmail(session.email)}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -80,24 +53,86 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget buildSettingsButton(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/settings');
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+  Widget _buildInfoCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required BuildContext context,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primaryContainer
+                    .withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        child: const Icon(Icons.settings),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/settings');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.settings),
+              label: const Text('Settings'),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
       ),
     );
   }
@@ -108,18 +143,34 @@ class ProfileScreen extends StatelessWidget {
       future: account.get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          final session = snapshot.data;
           return Scaffold(
-            body: SafeArea(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    buildProfileCard(snapshot.data, context),
-                    const SizedBox(height: 24),
-                    buildSettingsButton(context),
-                  ],
+            body: Column(
+              children: [
+                _buildHeader(context, session),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _buildInfoCard(
+                        title: 'Email',
+                        value: session!.email,
+                        icon: Icons.email,
+                        context: context,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildInfoCard(
+                        title: 'Registration Number',
+                        value: getRegisterIdFromEmail(session.email),
+                        icon: Icons.assignment_ind,
+                        context: context,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildActionButtons(context),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
             bottomNavigationBar: const BottomNavBar(),
           );

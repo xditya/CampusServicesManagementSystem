@@ -38,8 +38,8 @@ class _MyAppState extends State<MyApp> {
       updateTheme: _updateThemeMode,
       child: MaterialApp(
         title: 'Campus Services Management System',
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
         themeMode: _themeMode,
         onGenerateRoute: AppRouter.router.generator,
         onUnknownRoute: (settings) =>
