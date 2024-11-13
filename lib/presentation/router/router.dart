@@ -16,11 +16,41 @@ class AppRouter {
       '/',
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
-          return const LoginScreen();
+          return FutureBuilder(
+            future: account
+                .getSession(sessionId: 'current')
+                .then((_) => true)
+                .catchError((_) => false),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              if (snapshot.hasError || !(snapshot.data as bool)) {
+                return const LoginScreen();
+              }
+
+              return const DashboardScreen();
+            },
+          );
         },
       ),
       transitionType: TransitionType.fadeIn,
     );
+
+    router.define(
+      '/login',
+      handler: Handler(
+          handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+        return const LoginScreen();
+      }),
+      transitionType: TransitionType.fadeIn,
+    );
+
     router.define(
       '/dashboard',
       handler: Handler(
@@ -29,6 +59,7 @@ class AppRouter {
       }),
       transitionType: TransitionType.fadeIn,
     );
+
     router.define(
       '/wallet',
       handler: Handler(
@@ -38,6 +69,7 @@ class AppRouter {
       ),
       transitionType: TransitionType.fadeIn,
     );
+
     router.define(
       '/profile',
       handler: Handler(
@@ -47,6 +79,7 @@ class AppRouter {
       ),
       transitionType: TransitionType.fadeIn,
     );
+
     router.define(
       '/settings',
       handler: Handler(
@@ -56,6 +89,7 @@ class AppRouter {
       ),
       transitionType: TransitionType.fadeIn,
     );
+
     router.notFoundHandler = Handler(
       handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
         return const ErrorScreen();
