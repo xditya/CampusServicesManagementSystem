@@ -6,30 +6,26 @@ import 'package:flutter/material.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  Widget buildProfilePicture(session) {
+  Widget buildProfilePicture(BuildContext context, session) {
     final firstNameInitial = session.name.split(' ').first[0];
     final lastNameInitial = session.name.split(' ').last[0];
     return CircleAvatar(
       radius: 50,
-      backgroundColor: const Color.fromARGB(255, 168, 169, 169),
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       child: Text(
         '$firstNameInitial$lastNameInitial',
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onSecondary,
         ),
       ),
     );
-
-    // return CircleAvatar(
-    //   radius: 50,
-    //   backgroundImage: NetworkImage(userAvatarUrl),
-    //   backgroundColor: Colors.transparent,
-    // );
   }
 
-  Widget buildProfileCard(session) {
+  Widget buildProfileCard(session, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -40,24 +36,25 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
         child: Column(
           children: [
-            buildProfilePicture(session),
+            buildProfilePicture(context, session),
             const SizedBox(height: 16),
             Text(
               session.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Icon(Icons.email, color: Colors.grey, size: 20),
+              Icon(Icons.email, color: colorScheme.secondary, size: 20),
               const SizedBox(width: 4),
               Text(
                 session.email,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: colorScheme.onSurfaceVariant,
                 ),
               )
             ]),
@@ -65,13 +62,14 @@ class ProfileScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.assignment_ind, color: Colors.grey, size: 20),
+                Icon(Icons.assignment_ind,
+                    color: colorScheme.secondary, size: 20),
                 const SizedBox(width: 4),
                 Text(
                   'Registration Number: ${getRegisterIdFromEmail(session.email)}',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[700],
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -83,6 +81,8 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget buildSettingsButton(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
@@ -90,8 +90,8 @@ class ProfileScreen extends StatelessWidget {
           Navigator.pushNamed(context, '/settings');
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -109,13 +109,12 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return Scaffold(
-            backgroundColor: Colors.grey[200],
             body: SafeArea(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    buildProfileCard(snapshot.data),
+                    buildProfileCard(snapshot.data, context),
                     const SizedBox(height: 24),
                     buildSettingsButton(context),
                   ],
@@ -126,7 +125,11 @@ class ProfileScreen extends StatelessWidget {
           );
         }
 
-        return const Center(child: CircularProgressIndicator());
+        return Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        );
       },
     );
   }
