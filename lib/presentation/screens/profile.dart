@@ -173,7 +173,7 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       _buildInfoCard(
                         title: 'Email',
-                        value: session!.email,
+                        value: session.email,
                         icon: Icons.email,
                         context: context,
                       ),
