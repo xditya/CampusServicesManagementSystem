@@ -1,9 +1,8 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/enums.dart';
 import 'package:csms/helper/config.dart';
+import 'package:csms/helper/navigate_users.dart';
 import 'package:csms/helper/validate_email.dart';
-import 'package:csms/presentation/router/router.dart';
-import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -50,12 +49,12 @@ class _LoginScreenState extends State<LoginScreen> {
         });
 
         // Navigate to dashboard if session is valid
-        AppRouter.router.navigateTo(
-          context,
-          '/dashboard',
-          transition: TransitionType.fadeIn,
-          replace: true,
-        );
+        if (mounted) {
+          final session = await account.get();
+          if (mounted) {
+            naviagateUsers(context, session);
+          }
+        }
       }
     } catch (error) {
       if (mounted) {
@@ -83,12 +82,10 @@ class _LoginScreenState extends State<LoginScreen> {
       try {
         await account.get();
         if (context.mounted) {
-          AppRouter.router.navigateTo(
-            context,
-            '/dashboard',
-            transition: TransitionType.fadeIn,
-            replace: true,
-          );
+          final session = await account.get();
+          if (context.mounted) {
+            naviagateUsers(context, session);
+          }
         }
       } catch (sessionError) {
         if (context.mounted) {
@@ -185,12 +182,10 @@ class _LoginScreenState extends State<LoginScreen> {
         try {
           await account.get();
           if (mounted) {
-            AppRouter.router.navigateTo(
-              context,
-              '/dashboard',
-              transition: TransitionType.fadeIn,
-              replace: true,
-            );
+            final session = await account.get();
+            if (mounted) {
+              naviagateUsers(context, session);
+            }
           }
         } catch (sessionError) {
           if (context.mounted) {

@@ -1,7 +1,9 @@
 import 'package:csms/helper/config.dart';
+import 'package:csms/presentation/screens/admin.dart';
 import 'package:csms/presentation/screens/dashboard.dart';
 import 'package:csms/presentation/screens/error.dart';
 import 'package:csms/presentation/screens/login.dart';
+import 'package:csms/presentation/screens/print_shop.dart';
 import 'package:csms/presentation/screens/profile.dart';
 import 'package:csms/presentation/screens/settings.dart';
 import 'package:csms/presentation/screens/wallet.dart';
@@ -89,6 +91,20 @@ class AppRouter {
       ),
       transitionType: TransitionType.fadeIn,
     );
+
+    router.define(
+      '/admin',
+      handler: Handler(
+          handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+        return const AdminScreen();
+      }),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define('/print-shop', handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+      return const PrintShopScreen();
+    }));
 
     router.notFoundHandler = Handler(
       handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
