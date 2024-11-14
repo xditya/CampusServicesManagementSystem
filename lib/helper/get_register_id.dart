@@ -6,5 +6,5 @@ String getRegisterIdFromEmail(String email) {
       return idParts[1].toUpperCase();
     }
   }
-  return '';
+  return 'Not Applicable';
 }

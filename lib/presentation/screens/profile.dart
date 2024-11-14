@@ -7,6 +7,18 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   Widget _buildHeader(BuildContext context, dynamic session) {
+    if (session == null) {
+      return const SizedBox
+          .shrink(); // Return an empty widget if session is null
+    }
+    String? firstLast;
+    String? name = session.name;
+    try {
+      firstLast = session.name!.split(' ').map((e) => e[0]).join();
+    } catch (e) {
+      firstLast = session.email.split("@")[0][0];
+      name = session.email.split("@")[0];
+    }
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.35,
       child: SafeArea(
@@ -28,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
                   radius: 50,
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   child: Text(
-                    '${session.name.split(' ').first[0]}${session.name.split(' ').last[0]}',
+                    '$firstLast',
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -39,14 +51,15 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              session.name,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            if (session.name != null) // Check if session.name is not null
+              Text(
+                name!,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-            ),
           ],
         ),
       ),

@@ -182,14 +182,26 @@ class _LoginScreenState extends State<LoginScreen> {
           userId: userId!,
           secret: otp,
         );
-
-        if (mounted) {
-          AppRouter.router.navigateTo(
-            context,
-            '/dashboard',
-            transition: TransitionType.fadeIn,
-            replace: true,
-          );
+        try {
+          await account.get();
+          if (mounted) {
+            AppRouter.router.navigateTo(
+              context,
+              '/dashboard',
+              transition: TransitionType.fadeIn,
+              replace: true,
+            );
+          }
+        } catch (sessionError) {
+          if (context.mounted) {
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to get session. Please try again.'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -239,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Please enter the verification code sent to your email: ${_emailController.text}',
+                'Please enter the verification code sent to ${_emailController.text}',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                   fontSize: 14,
