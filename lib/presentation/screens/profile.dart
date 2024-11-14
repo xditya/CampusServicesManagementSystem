@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:csms/helper/config.dart';
-import 'package:csms/helper/getRegisterId.dart';
+import 'package:csms/helper/get_register_id.dart';
 import 'package:csms/presentation/widgets/bottom_navbar.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -144,6 +144,25 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           final session = snapshot.data;
+          if (session == null) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('You are not logged in'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/login');
+                      },
+                      child: const Text('Login'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           return Scaffold(
             body: Column(
               children: [
