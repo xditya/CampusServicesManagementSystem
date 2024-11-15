@@ -1,7 +1,7 @@
-import 'package:csms/helper/config.dart';
 import 'package:csms/presentation/screens/admin.dart';
 import 'package:csms/presentation/screens/dashboard.dart';
 import 'package:csms/presentation/screens/error.dart';
+import 'package:csms/presentation/screens/landing.dart';
 import 'package:csms/presentation/screens/login.dart';
 import 'package:csms/presentation/screens/print_shop.dart';
 import 'package:csms/presentation/screens/profile.dart';
@@ -18,27 +18,7 @@ class AppRouter {
       '/',
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
-          return FutureBuilder(
-            future: account
-                .getSession(sessionId: 'current')
-                .then((_) => true)
-                .catchError((_) => false),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-
-              if (snapshot.hasError || !(snapshot.data as bool)) {
-                return const LoginScreen();
-              }
-
-              return const DashboardScreen();
-            },
-          );
+          return const LandingScreen();
         },
       ),
       transitionType: TransitionType.fadeIn,

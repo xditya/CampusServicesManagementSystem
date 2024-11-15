@@ -1,3 +1,4 @@
+import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:flutter/material.dart';
 
 class AdminScreen extends StatelessWidget {
@@ -5,6 +6,11 @@ class AdminScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return const Scaffold(
+      bottomNavigationBar: BottomNavBarAdmin(),
+      body: Center(
+        child: Text('Admin Dashboard'),
+      ),
+    );
   }
 }

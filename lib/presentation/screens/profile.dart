@@ -1,7 +1,7 @@
+import 'package:csms/helper/choose_navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:csms/helper/config.dart';
 import 'package:csms/helper/get_register_id.dart';
-import 'package:csms/presentation/widgets/bottom_navbar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -177,35 +177,34 @@ class ProfileScreen extends StatelessWidget {
             );
           }
           return Scaffold(
-            body: Column(
-              children: [
-                _buildHeader(context, session),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildInfoCard(
-                        title: 'Email',
-                        value: session.email,
-                        icon: Icons.email,
-                        context: context,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildInfoCard(
-                        title: 'Registration Number',
-                        value: getRegisterIdFromEmail(session.email),
-                        icon: Icons.assignment_ind,
-                        context: context,
-                      ),
-                      const SizedBox(height: 24),
-                      _buildActionButtons(context),
-                    ],
+              body: Column(
+                children: [
+                  _buildHeader(context, session),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        _buildInfoCard(
+                          title: 'Email',
+                          value: session.email,
+                          icon: Icons.email,
+                          context: context,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInfoCard(
+                          title: 'Registration Number',
+                          value: getRegisterIdFromEmail(session.email),
+                          icon: Icons.assignment_ind,
+                          context: context,
+                        ),
+                        const SizedBox(height: 24),
+                        _buildActionButtons(context),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            bottomNavigationBar: const BottomNavBar(),
-          );
+                ],
+              ),
+              bottomNavigationBar: chooseNavBar(session));
         }
 
         return Center(
