@@ -1,3 +1,4 @@
+import 'package:csms/presentation/screens/add_balance.dart';
 import 'package:csms/presentation/screens/admin.dart';
 import 'package:csms/presentation/screens/dashboard.dart';
 import 'package:csms/presentation/screens/error.dart';
@@ -85,6 +86,15 @@ class AppRouter {
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
       return const PrintShopScreen();
     }));
+
+    router.define(
+      '/add-balance',
+      handler: Handler(
+          handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+        return const AddBalanceScreen();
+      }),
+      transitionType: TransitionType.fadeIn,
+    );
 
     router.notFoundHandler = Handler(
       handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
