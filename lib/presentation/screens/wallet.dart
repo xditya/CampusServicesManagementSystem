@@ -284,7 +284,7 @@ class WalletScreen extends StatelessWidget {
             const SizedBox(height: 16),
             if (transactions == null || transactions.isEmpty)
               const Center(child: Text('No transactions found')),
-            for (var transaction in transactions ?? [])
+            for (var transaction in transactions?.reversed.toList() ?? [])
               _buildTransactionItem(
                 icon: getIcon(transaction['type']),
                 type: transaction['type'],
