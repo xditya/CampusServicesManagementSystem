@@ -43,14 +43,17 @@ class VendingDB {
       'totalCost': totalCost,
     };
 
-    // Update the document, creating if it doesn't exist
+    // Create or update the document with the new order
     await collection.updateOne(
       where.eq('email', email),
       {
-        '\$push': {'orders': orderDetails}
+        '\$set': {
+          'orders.$orderHash': [orderDetails]
+        }
       },
       upsert: true,
     );
+
     return orderDetails;
   }
 
