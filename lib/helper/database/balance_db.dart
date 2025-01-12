@@ -1,26 +1,24 @@
 // using mongodb is not a preferred way to store user data, should've used appwrite instead
 // but anyways, here it is :)
 
-import 'package:csms/helper/config.dart';
+import 'package:csms/helper/database/db_service.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 Future<double> getBalance(String email) async {
-  var db = await Db.create(MONGODB_URL);
-  await db.open();
-  var collection = db.collection('users');
+  final dbService = DBService();
+  if (!dbService.isConnected) {
+    await dbService.connect();
+  }
+  final collection = dbService.db.collection('users');
   var userInfo = await collection.findOne(where.eq('email', email));
   if (userInfo == null) {
-    await db.close();
     return 0;
   }
-  await db.close();
   return userInfo['balance'];
 }
 
 Future updateBalance(String email, double value, String type) async {
-  var db = await Db.create(MONGODB_URL);
-  await db.open();
-  var collection = db.collection('users');
+  final collection = DBService().db.collection('users');
   try {
     var userInfo = await collection.findOne(where.eq('email', email));
     if (userInfo != null) {
@@ -59,15 +57,11 @@ Future updateBalance(String email, double value, String type) async {
         }
       ],
     });
-  } finally {
-    await db.close();
   }
 }
 
 Future<List> getTransactions(String email) async {
-  var db = await Db.create(MONGODB_URL);
-  await db.open();
-  var collection = db.collection('users');
+  final collection = DBService().db.collection('users');
   try {
     var userInfo = await collection.findOne(where.eq('email', email));
     if (userInfo == null) {
@@ -76,8 +70,6 @@ Future<List> getTransactions(String email) async {
     return userInfo['transactions'];
   } catch (e) {
     return [];
-  } finally {
-    await db.close();
   }
 }
 

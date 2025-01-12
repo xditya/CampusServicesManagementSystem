@@ -1,7 +1,9 @@
+import 'package:csms/helper/database/vending_db.dart';
 import 'package:flutter/material.dart';
 import 'package:csms/presentation/providers/vending_provider.dart';
 import 'package:csms/helper/vending_items.dart';
 import 'package:provider/provider.dart';
+import 'package:csms/helper/database/db_service.dart';
 
 class VendingMachineScreen extends StatelessWidget {
   const VendingMachineScreen({super.key});
@@ -9,7 +11,9 @@ class VendingMachineScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => VendingProvider()..loadWalletBalance(),
+      create: (_) => VendingProvider(VendingDB(DBService().db))
+        ..loadWalletBalance()
+        ..loadOrders(),
       child: const VendingMachineView(),
     );
   }
@@ -26,6 +30,11 @@ class VendingMachineView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Vending Machine'),
         actions: [
+          IconButton(
+            onPressed: () => Navigator.pushNamed(context, '/my-orders'),
+            icon: const Icon(Icons.receipt_long),
+            tooltip: 'My Orders',
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
@@ -218,11 +227,43 @@ class VendingMachineBottomBar extends StatelessWidget {
                     try {
                       await provider.processPurchase();
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Order placed successfully!'),
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => Dialog(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 64,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Done!',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  FilledButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         );
+                        Future.delayed(const Duration(seconds: 2), () {
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        });
                       }
                     } catch (e) {
                       if (context.mounted) {

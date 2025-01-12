@@ -1,12 +1,16 @@
 import 'package:csms/helper/vending_items.dart';
 import 'package:flutter/foundation.dart';
 import 'package:csms/helper/database/balance_db.dart';
+import 'package:csms/helper/database/vending_db.dart';
 import 'package:csms/helper/config.dart';
 
 class VendingProvider extends ChangeNotifier {
   final Map<String, int> _selectedItems = {};
   final List<Order> _orders = [];
   double _walletBalance = 0.0;
+  final VendingDB _vendingDB;
+
+  VendingProvider(this._vendingDB);
 
   Map<String, int> get selectedItems => _selectedItems;
   List<Order> get orders => _orders;
@@ -39,7 +43,7 @@ class VendingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> processPurchase() async {
+  Future<String> processPurchase() async {
     final session = await account.get();
 
     if (totalCost > _walletBalance) {
@@ -49,32 +53,55 @@ class VendingProvider extends ChangeNotifier {
     try {
       await updateBalance(session.email, -totalCost, "vending machine");
       _walletBalance -= totalCost;
+
+      await _vendingDB.addOrder(session.email, _selectedItems);
+
       _orders.add(
         Order(
-          items: _selectedItems.entries
-              .map((e) =>
-                  vendingItems.firstWhere((item) => item.id == e.key).name)
-              .toList(),
-          status: 'Processing',
+          items: Map<String, int>.from(_selectedItems),
+          status: 'Placed',
           total: totalCost,
         ),
       );
+
       _selectedItems.clear();
       notifyListeners();
+      return 'Order placed successfully! Check My Orders for updates.';
     } catch (e) {
+      if (_walletBalance != walletBalance) {
+        await updateBalance(session.email, totalCost, "vending machine refund");
+        _walletBalance += totalCost;
+      }
       throw Exception('Failed to process purchase: $e');
     }
+  }
+
+  Future<void> loadOrders() async {
+    final session = await account.get();
+    final dbOrders = await _vendingDB.getAllOrders(session.email);
+
+    _orders.clear();
+    _orders.addAll(
+      dbOrders.map((order) => Order(
+            items: Map<String, int>.from(order['items'] as Map),
+            status: (order['status'] is bool)
+                ? (order['status'] ? 'Completed' : 'Placed')
+                : order['status'] as String? ?? 'Placed',
+            total: (order['totalCost'] as num).toDouble(),
+          )),
+    );
+    notifyListeners();
   }
 }
 
 class Order {
-  final List<String> items;
+  final Map<String, int> items;
   final String status;
   final double total;
 
   Order({
     required this.items,
-    required this.status,
+    String? status,
     required this.total,
-  });
+  }) : status = status ?? 'Placed';
 }

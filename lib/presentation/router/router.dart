@@ -4,6 +4,7 @@ import 'package:csms/presentation/screens/dashboard.dart';
 import 'package:csms/presentation/screens/error.dart';
 import 'package:csms/presentation/screens/landing.dart';
 import 'package:csms/presentation/screens/login.dart';
+import 'package:csms/presentation/screens/my_orders.dart';
 import 'package:csms/presentation/screens/print_shop.dart';
 import 'package:csms/presentation/screens/profile.dart';
 import 'package:csms/presentation/screens/settings.dart';
@@ -108,6 +109,16 @@ class AppRouter {
           handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
         return const VendingMachineScreen();
       }),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/my-orders',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const MyOrdersScreen();
+        },
+      ),
       transitionType: TransitionType.fadeIn,
     );
 

@@ -3,9 +3,12 @@ import 'package:csms/presentation/screens/error.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:csms/presentation/providers/theme_provider.dart';
+import 'package:csms/helper/database/db_service.dart';
 
 Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await DBService().connect();
   runApp(const MyApp());
 }
 
