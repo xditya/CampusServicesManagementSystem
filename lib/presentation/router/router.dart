@@ -7,6 +7,7 @@ import 'package:csms/presentation/screens/login.dart';
 import 'package:csms/presentation/screens/print_shop.dart';
 import 'package:csms/presentation/screens/profile.dart';
 import 'package:csms/presentation/screens/settings.dart';
+import 'package:csms/presentation/screens/vending_machine.dart';
 import 'package:csms/presentation/screens/wallet.dart';
 import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
@@ -97,6 +98,15 @@ class AppRouter {
       handler: Handler(
           handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
         return const AddBalanceScreen();
+      }),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/vending-machine',
+      handler: Handler(
+          handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+        return const VendingMachineScreen();
       }),
       transitionType: TransitionType.fadeIn,
     );
