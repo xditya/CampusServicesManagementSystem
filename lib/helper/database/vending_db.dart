@@ -16,7 +16,8 @@ class VendingDB {
     }
   }
 
-  Future<void> addOrder(String email, Map<String, int> items) async {
+  Future<Map<String, dynamic>> addOrder(
+      String email, Map<String, int> items) async {
     await _ensureConnection();
     final collection = _db.collection(_collectionName);
 
@@ -50,6 +51,7 @@ class VendingDB {
       },
       upsert: true,
     );
+    return orderDetails;
   }
 
   Future<Map<String, dynamic>?> getOrders(String email) async {
@@ -70,11 +72,12 @@ class VendingDB {
 
     final orders = result['orders'] as Map;
 
-    // Extract all order lists from the map values and flatten them
-    final allOrders = orders.values
-        .expand((orderList) => (orderList as List))
-        .map((order) => order as Map<String, dynamic>)
-        .toList();
+    // Extract orders and include the hash key
+    final allOrders = orders.entries.map((entry) {
+      final order = (entry.value as List).first as Map<String, dynamic>;
+      order['hash'] = entry.key;
+      return order;
+    }).toList();
 
     return allOrders;
   }

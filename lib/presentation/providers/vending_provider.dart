@@ -54,13 +54,15 @@ class VendingProvider extends ChangeNotifier {
       await updateBalance(session.email, -totalCost, "vending machine");
       _walletBalance -= totalCost;
 
-      await _vendingDB.addOrder(session.email, _selectedItems);
+      final orderDetails =
+          await _vendingDB.addOrder(session.email, _selectedItems);
 
       _orders.add(
         Order(
           items: Map<String, int>.from(_selectedItems),
           status: 'Placed',
           total: totalCost,
+          hash: orderDetails['hash'],
         ),
       );
 
@@ -88,6 +90,7 @@ class VendingProvider extends ChangeNotifier {
                 ? (order['status'] ? 'Completed' : 'Placed')
                 : order['status'] as String? ?? 'Placed',
             total: (order['totalCost'] as num).toDouble(),
+            hash: order['hash']?.toString() ?? 'unknown',
           )),
     );
     notifyListeners();
@@ -98,10 +101,12 @@ class Order {
   final Map<String, int> items;
   final String status;
   final double total;
+  final String hash;
 
   Order({
     required this.items,
     String? status,
     required this.total,
+    required this.hash,
   }) : status = status ?? 'Placed';
 }

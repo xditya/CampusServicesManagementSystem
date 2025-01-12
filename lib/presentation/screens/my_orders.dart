@@ -1,9 +1,11 @@
+import 'package:csms/helper/config.dart';
 import 'package:csms/helper/database/db_service.dart';
 import 'package:csms/helper/database/vending_db.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:csms/presentation/providers/vending_provider.dart';
 import 'package:csms/helper/vending_items.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class MyOrdersScreen extends StatelessWidget {
   const MyOrdersScreen({super.key});
@@ -59,6 +61,7 @@ class MyOrdersScreen extends StatelessWidget {
                       'items': itemsList,
                       'total': total,
                       'status': status,
+                      'hash': order.hash,
                     }),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -123,6 +126,7 @@ class MyOrdersScreen extends StatelessWidget {
     final items = (order['items'] as List<String>);
     final total = order['total'] as num;
     final status = order['status'] as String;
+    final hash = order['hash'] as String;
 
     showModalBottomSheet(
       context: context,
@@ -132,9 +136,19 @@ class MyOrdersScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Order Details',
-              style: Theme.of(context).textTheme.headlineSmall,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Order Details',
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                IconButton(
+                  onPressed: () => _showQRCode(context, hash),
+                  icon: const Icon(Icons.qr_code),
+                  tooltip: 'View QR Code',
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             ...items.map(
@@ -177,6 +191,50 @@ class MyOrdersScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showQRCode(BuildContext context, String hash) async {
+    final session = await account.get();
+    final qrData = '${session.email}_$hash';
+
+    if (!context.mounted) return;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'QR Code',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 24),
+              QrImageView(
+                data: qrData,
+                version: QrVersions.auto,
+                size: 200.0,
+                eyeStyle: QrEyeStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+                dataModuleStyle: QrDataModuleStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 24),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
         ),
       ),
     );

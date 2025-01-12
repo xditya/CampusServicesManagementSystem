@@ -50,6 +50,7 @@ dependencies:
   pdf_render: ^1.4.7
   provider: ^6.1.2
   crypto: ^3.0.6
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

@@ -44,6 +44,7 @@ class _MyAppState extends State<MyApp> {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: _themeMode,
+        debugShowCheckedModeBanner: false,
         onGenerateRoute: AppRouter.router.generator,
         onUnknownRoute: (settings) =>
             MaterialPageRoute(builder: (context) => const ErrorScreen()),
