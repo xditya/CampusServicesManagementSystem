@@ -29,26 +29,60 @@ class VendingMachineView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Vending Machine'),
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.pushNamed(context, '/my-orders'),
-            icon: const Icon(Icons.receipt_long),
-            tooltip: 'My Orders',
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Container(
+            padding: const EdgeInsets.all(8),
             child: Row(
               children: [
-                const Icon(Icons.wallet),
+                Expanded(
+                  child: Card(
+                    child: InkWell(
+                      onTap: () => Navigator.pushNamed(context, '/my-orders'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.receipt_long),
+                            const SizedBox(width: 8),
+                            Text(
+                              'My Orders',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Text(
-                  '₹${provider.walletBalance.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.wallet),
+                        const SizedBox(width: 8),
+                        Text(
+                          '₹${provider.walletBalance.toStringAsFixed(2)}',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
