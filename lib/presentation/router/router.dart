@@ -82,10 +82,15 @@ class AppRouter {
       transitionType: TransitionType.fadeIn,
     );
 
-    router.define('/print-shop', handler: Handler(
+    router.define(
+      '/print-shop',
+      handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
-      return const PrintShopScreen();
-    }));
+          return const PrintShopScreen();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
 
     router.define(
       '/add-balance',

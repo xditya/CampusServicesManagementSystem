@@ -109,7 +109,7 @@ class DashboardScreen extends StatelessWidget {
                 {
                   'title': 'Printer',
                   'icon': Icons.print,
-                  'route': '/printer',
+                  'route': '/print-shop',
                   'description':
                       'Access and manage printer settings and queue. Submit print jobs, check status, and manage your printing credits all in one place.',
                   'color': Colors.blue,
