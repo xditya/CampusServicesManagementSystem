@@ -3,6 +3,36 @@ import 'package:csms/helper/database/balance_db.dart';
 import 'package:csms/presentation/widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:intl/intl.dart';
+
+String getHumanReadableTime(String dateString) {
+  final date = DateTime.parse(dateString);
+  final now = DateTime.now();
+  final difference = now.difference(date);
+
+  if (difference.inSeconds < 60) {
+    return 'Just now';
+  } else if (difference.inMinutes < 60) {
+    return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
+  } else if (difference.inHours < 24) {
+    return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
+  } else if (difference.inDays < 7) {
+    return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
+  } else if (difference.inDays < 30) {
+    final weeks = (difference.inDays / 7).floor();
+    return '$weeks ${weeks == 1 ? 'week' : 'weeks'} ago';
+  } else if (difference.inDays < 365) {
+    final months = (difference.inDays / 30).floor();
+    return '$months ${months == 1 ? 'month' : 'months'} ago';
+  } else {
+    return DateFormat('MMM d, yyyy').format(date);
+  }
+}
+
+String getDetailedDateTime(String dateString) {
+  final date = DateTime.parse(dateString);
+  return DateFormat('MMM d, yyyy • h:mm a').format(date);
+}
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
@@ -288,7 +318,8 @@ class WalletScreen extends StatelessWidget {
               _buildTransactionItem(
                 icon: getIcon(transaction['type']),
                 type: transaction['type'],
-                time: transaction['date'],
+                time: getHumanReadableTime(transaction['date']),
+                dateString: transaction['date'],
                 amount: transaction['amount'] > 0
                     ? '₹${transaction['amount'].abs()}'
                     : '-₹${transaction['amount'].abs()}',
@@ -314,55 +345,62 @@ Widget _buildTransactionItem({
   required IconData icon,
   required String type,
   required String time,
+  required String dateString, // Add this parameter
   required String amount,
   required bool isCredit,
 }) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isCredit
-                ? Colors.green.withOpacity(0.1)
-                : Colors.red.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+  return Tooltip(
+    message:
+        DateFormat('MMM d, yyyy • h:mm a').format(DateTime.parse(dateString)),
+    preferBelow: false,
+    triggerMode: TooltipTriggerMode.longPress,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isCredit
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: isCredit ? Colors.green : Colors.red,
+            ),
           ),
-          child: Icon(
-            icon,
-            color: isCredit ? Colors.green : Colors.red,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                type.toUpperCase(),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  type.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                time,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
+                Text(
+                  time,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Text(
-          amount,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isCredit ? Colors.green : Colors.red,
+          Text(
+            amount,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isCredit ? Colors.green : Colors.red,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
