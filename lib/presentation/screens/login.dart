@@ -397,41 +397,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Stack(
             children: [
-              // Subtle accent circles
-              Positioned(
-                top: -100,
-                right: -100,
-                child: Container(
-                  width: 300,
-                  height: 300,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.purple.withOpacity(0.1),
-                        Colors.purple.withOpacity(0.0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -50,
-                left: -50,
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.amber.withOpacity(0.1),
-                        Colors.amber.withOpacity(0.0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
               // Main content
               Center(
                 child: SingleChildScrollView(
@@ -516,7 +481,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (!_showOtpInput) ...[
                           Container(
                             width: double.infinity,
-                            constraints: const BoxConstraints(maxWidth: 400),
+                            constraints: const BoxConstraints(maxWidth: 300),
                             child: ElevatedButton(
                               onPressed: () => _handleGoogleSignIn(context),
                               style: ElevatedButton.styleFrom(
