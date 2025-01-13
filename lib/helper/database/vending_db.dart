@@ -64,23 +64,35 @@ class VendingDB {
     return result?['orders'] as Map<String, dynamic>?;
   }
 
-  Future<List<Map<String, dynamic>>> getAllOrders(String email) async {
+  Future<List<Map<String, dynamic>>> getAllOrders([String? email]) async {
     await _ensureConnection();
     final collection = _db.collection(_collectionName);
 
-    final result = await collection.findOne(where.eq('email', email));
-    if (result == null || !result.containsKey('orders')) {
-      return [];
+    // If no email is provided, get all orders
+    final query = email != null ? where.eq('email', email) : where;
+    final results = await collection.find(query).toList();
+
+    List<Map<String, dynamic>> allOrders = [];
+
+    for (var result in results) {
+      if (result.containsKey('orders')) {
+        final orders = result['orders'] as Map;
+        final userEmail = result['email'] as String;
+
+        orders.forEach((hash, orderData) {
+          if (orderData is List && orderData.isNotEmpty) {
+            var order = Map<String, dynamic>.from(orderData[0] as Map);
+            order['hash'] = hash;
+            order['userEmail'] = userEmail; // Add user email to order details
+            allOrders.add(order);
+          }
+        });
+      }
     }
 
-    final orders = result['orders'] as Map;
-
-    // Extract orders and include the hash key
-    final allOrders = orders.entries.map((entry) {
-      final order = (entry.value as List).first as Map<String, dynamic>;
-      order['hash'] = entry.key;
-      return order;
-    }).toList();
+    // Sort by timestamp (most recent first)
+    allOrders.sort((a, b) =>
+        int.parse(b['timestamp']).compareTo(int.parse(a['timestamp'])));
 
     return allOrders;
   }

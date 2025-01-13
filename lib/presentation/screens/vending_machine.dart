@@ -131,7 +131,7 @@ class VendingMachineView extends StatelessWidget {
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.all(8),
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [

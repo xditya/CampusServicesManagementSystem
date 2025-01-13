@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class BottomNavBarAdmin extends StatefulWidget {
-  const BottomNavBarAdmin({super.key});
+class BottomNavBarVending extends StatefulWidget {
+  const BottomNavBarVending({super.key});
 
   @override
-  BottomNavBarAdminState createState() => BottomNavBarAdminState();
+  BottomNavBarVendingState createState() => BottomNavBarVendingState();
 }
 
-class BottomNavBarAdminState extends State<BottomNavBarAdmin> {
+class BottomNavBarVendingState extends State<BottomNavBarVending> {
   int currentPageIndex = 0;
 
   @override
@@ -24,11 +24,14 @@ class BottomNavBarAdminState extends State<BottomNavBarAdmin> {
   void _setCurrentPageIndex() {
     final routeName = ModalRoute.of(context)?.settings.name;
     switch (routeName) {
-      case '/admin':
+      case '/vending-dashboard':
         currentPageIndex = 0;
         break;
-      case '/profile':
+      case '/vending-orders':
         currentPageIndex = 1;
+        break;
+      case '/profile':
+        currentPageIndex = 2;
         break;
       default:
         currentPageIndex = 0;
@@ -41,8 +44,12 @@ class BottomNavBarAdminState extends State<BottomNavBarAdmin> {
       NavigationDestination(
         icon: Icon(Icons.home_outlined),
         selectedIcon: Icon(Icons.home),
-        label: 'Admin Dashboard',
+        label: 'Vending Dashboard',
       ),
+      NavigationDestination(
+          icon: Icon(Icons.list_outlined),
+          selectedIcon: Icon(Icons.list),
+          label: "Orders"),
       NavigationDestination(
         icon: Icon(Icons.person_outline),
         selectedIcon: Icon(Icons.person),
@@ -60,13 +67,19 @@ class BottomNavBarAdminState extends State<BottomNavBarAdmin> {
   void _navigateToPage(BuildContext context, int index) {
     switch (index) {
       case 0:
-        Navigator.pushNamedAndRemoveUntil(context, '/admin', (route) => false);
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/vending-dashboard', (route) => false);
         break;
       case 1:
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/vending-orders', (route) => false);
+        break;
+      case 2:
         Navigator.pushReplacementNamed(context, '/profile');
         break;
       default:
-        Navigator.pushNamedAndRemoveUntil(context, '/admin', (route) => false);
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/vending-dashboard', (route) => false);
     }
   }
 }

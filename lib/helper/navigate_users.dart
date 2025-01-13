@@ -13,10 +13,10 @@ void naviagateUsers(BuildContext context, User session) {
       transition: TransitionType.fadeIn,
       replace: true,
     );
-  } else if (session.labels.contains('print-shop]')) {
+  } else if (session.labels.contains('vending')) {
     AppRouter.router.navigateTo(
       context,
-      '/print-shop',
+      '/vending-dashboard',
       transition: TransitionType.fadeIn,
       replace: true,
     );

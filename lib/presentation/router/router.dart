@@ -8,6 +8,8 @@ import 'package:csms/presentation/screens/my_orders.dart';
 import 'package:csms/presentation/screens/print_shop.dart';
 import 'package:csms/presentation/screens/profile.dart';
 import 'package:csms/presentation/screens/settings.dart';
+import 'package:csms/presentation/screens/vending/vending_dashboard.dart';
+import 'package:csms/presentation/screens/vending/vending_orders.dart';
 import 'package:csms/presentation/screens/vending_machine.dart';
 import 'package:csms/presentation/screens/wallet.dart';
 import 'package:flutter/material.dart';
@@ -117,6 +119,26 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const MyOrdersScreen();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/vending-dashboard',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const VendingDashboard();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/vending-orders',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const VendingOrders();
         },
       ),
       transitionType: TransitionType.fadeIn,
