@@ -96,6 +96,7 @@ class VendingMachineView extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = vendingItems[index];
           final quantity = provider.selectedItems[item.id] ?? 0;
+          final isDark = Theme.of(context).brightness == Brightness.dark;
 
           return Card(
             clipBehavior: Clip.antiAlias,
@@ -107,7 +108,10 @@ class VendingMachineView extends StatelessWidget {
                   child: Column(
                     children: [
                       Icon(item.icon,
-                          size: 48, color: Theme.of(context).primaryColor),
+                          size: 48,
+                          color: isDark
+                              ? Colors.white
+                              : Theme.of(context).primaryColor),
                       const SizedBox(height: 8),
                       Text(
                         item.name,
