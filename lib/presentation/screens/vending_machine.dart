@@ -222,6 +222,28 @@ class VendingMachineBottomBar extends StatelessWidget {
   void _showConfirmDialog(BuildContext context) {
     final provider = context.read<VendingProvider>();
 
+    // Check balance before showing confirmation
+    if (provider.totalCost > provider.walletBalance) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Insufficient balance. You need ₹${(provider.totalCost - provider.walletBalance).toStringAsFixed(2)} more to place this order.',
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Add Money',
+            textColor: Colors.white,
+            onPressed: () {
+              // Navigate to add money screen if you have one
+              // Navigator.pushNamed(context, '/add-money');
+            },
+          ),
+        ),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Padding(
@@ -268,47 +290,41 @@ class VendingMachineBottomBar extends StatelessWidget {
                         showDialog(
                           context: context,
                           barrierDismissible: false,
-                          builder: (context) => Dialog(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.check_circle,
-                                    color: Colors.green,
-                                    size: 64,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    'Done!',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  FilledButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
+                          builder: (context) => AlertDialog(
+                            icon: const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 64,
                             ),
+                            title: const Text('Order Placed Successfully!'),
+                            content: const Text(
+                              'Your order has been placed. Check My Orders for updates.',
+                              textAlign: TextAlign.center,
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushNamed(context, '/my-orders');
+                                },
+                                child: const Text('View Orders'),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('OK'),
+                              ),
+                            ],
                           ),
                         );
-                        Future.delayed(const Duration(seconds: 2), () {
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                          }
-                        });
                       }
-                    } catch (e) {
+                    } catch (error) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(e.toString()),
+                            content: Text(error.toString()),
                             backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 4),
                           ),
                         );
                       }

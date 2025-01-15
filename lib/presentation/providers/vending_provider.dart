@@ -43,11 +43,15 @@ class VendingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String> processPurchase() async {
+  Future<void> processPurchase() async {
     final session = await account.get();
 
+    if (_selectedItems.isEmpty) {
+      throw 'Please select items to purchase.';
+    }
+
     if (totalCost > _walletBalance) {
-      throw Exception('Insufficient balance');
+      throw 'Insufficient balance. Please add funds to continue.';
     }
 
     try {
@@ -57,24 +61,23 @@ class VendingProvider extends ChangeNotifier {
       final orderDetails =
           await _vendingDB.addOrder(session.email, _selectedItems);
 
-      _orders.add(
-        Order(
-          items: Map<String, int>.from(_selectedItems),
-          status: 'Placed',
-          total: totalCost,
-          hash: orderDetails['hash'],
-        ),
-      );
+      _orders.insert(
+          0,
+          Order(
+            items: Map<String, int>.from(_selectedItems),
+            status: 'Placed',
+            total: totalCost,
+            hash: orderDetails['hash'],
+          ));
 
       _selectedItems.clear();
       notifyListeners();
-      return 'Order placed successfully! Check My Orders for updates.';
     } catch (e) {
       if (_walletBalance != walletBalance) {
         await updateBalance(session.email, totalCost, "vending machine refund");
         _walletBalance += totalCost;
       }
-      throw Exception('Failed to process purchase: $e');
+      throw 'Failed to process purchase: ${e.toString()}';
     }
   }
 
@@ -102,11 +105,14 @@ class Order {
   final String status;
   final double total;
   final String hash;
+  final DateTime timestamp;
 
   Order({
     required this.items,
     String? status,
     required this.total,
     required this.hash,
-  }) : status = status ?? 'Placed';
+    DateTime? timestamp,
+  })  : status = status ?? 'Placed',
+        timestamp = timestamp ?? DateTime.now();
 }
