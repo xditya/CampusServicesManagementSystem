@@ -30,7 +30,7 @@ class MyOrdersScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: provider.orders.length,
               itemBuilder: (context, index) {
-                final ordersList = provider.orders.reversed.toList();
+                final ordersList = provider.orders;
                 final order = ordersList[index];
                 // Convert the items map to a list of item names
                 final itemsList = order.items.entries.map((entry) {

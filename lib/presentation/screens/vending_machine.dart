@@ -283,45 +283,57 @@ class VendingMachineBottomBar extends StatelessWidget {
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () async {
+                    // First close the bottom sheet
                     Navigator.pop(context);
+
+                    // Create a BuildContext variable to store the outer context
+                    final scaffoldContext = context;
+
                     try {
                       await provider.processPurchase();
-                      if (context.mounted) {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => AlertDialog(
-                            icon: const Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                              size: 64,
+
+                      // Use the stored context to show the success message
+                      if (scaffoldContext.mounted) {
+                        ScaffoldMessenger.of(scaffoldContext)
+                            .clearSnackBars(); // Clear any existing SnackBars
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                          SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.check_circle, color: Colors.white),
+                                SizedBox(width: 8),
+                                Expanded(
+                                    child: Text('Order placed successfully!')),
+                              ],
                             ),
-                            title: const Text('Order Placed Successfully!'),
-                            content: const Text(
-                              'Your order has been placed. Check My Orders for updates.',
-                              textAlign: TextAlign.center,
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 4),
+                            action: SnackBarAction(
+                              label: 'View Orders',
+                              textColor: Colors.white,
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                    scaffoldContext, '/my-orders');
+                              },
                             ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(context, '/my-orders');
-                                },
-                                child: const Text('View Orders'),
-                              ),
-                              FilledButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('OK'),
-                              ),
-                            ],
                           ),
                         );
                       }
                     } catch (error) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                      if (scaffoldContext.mounted) {
+                        ScaffoldMessenger.of(scaffoldContext)
+                            .clearSnackBars(); // Clear any existing SnackBars
+                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                           SnackBar(
-                            content: Text(error.toString()),
+                            content: Row(
+                              children: [
+                                const Icon(Icons.error_outline,
+                                    color: Colors.white),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(error.toString())),
+                              ],
+                            ),
                             backgroundColor: Colors.red,
                             behavior: SnackBarBehavior.floating,
                             duration: const Duration(seconds: 4),
