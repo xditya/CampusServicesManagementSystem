@@ -20,6 +20,13 @@ void naviagateUsers(BuildContext context, User session) {
       transition: TransitionType.fadeIn,
       replace: true,
     );
+  } else if (session.labels.contains('printer')) {
+    AppRouter.router.navigateTo(
+      context,
+      '/printer-orders',
+      transition: TransitionType.fadeIn,
+      replace: true,
+    );
   } else {
     AppRouter.router.navigateTo(
       context,

@@ -26,17 +26,21 @@ class PrintRequest {
   });
 
   factory PrintRequest.fromJson(Map<String, dynamic> json) {
+    // Handle the case where the request is nested in a document
+    final requestData =
+        json.containsKey('requests') ? (json['requests'] as List).first : json;
+
     return PrintRequest(
-      processName: json['processName'] as String,
-      fileName: json['fileName'] as String,
-      fileBytes: (json['fileBytes'] as BsonBinary).byteList,
-      numberOfPages: json['numberOfPages'] as int,
-      numberOfCopies: json['numberOfCopies'] as int,
-      isColorPrint: json['isColorPrint'] as bool,
-      isDoubleSided: json['isDoubleSided'] as bool,
-      totalCost: json['totalCost'] as double,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      status: json['status'] as String,
+      processName: requestData['processName'] as String,
+      fileName: requestData['fileName'] as String,
+      fileBytes: (requestData['fileBytes'] as BsonBinary).byteList,
+      numberOfPages: requestData['numberOfPages'] as int,
+      numberOfCopies: requestData['numberOfCopies'] as int,
+      isColorPrint: requestData['isColorPrint'] as bool,
+      isDoubleSided: requestData['isDoubleSided'] as bool,
+      totalCost: requestData['totalCost'] as double,
+      createdAt: DateTime.parse(requestData['createdAt'] as String),
+      status: requestData['status'] as String,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:appwrite/models.dart';
 import 'package:csms/presentation/widgets/bottom_navbar.dart';
 import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
+import 'package:csms/presentation/widgets/bottom_navbar_printer.dart';
 import 'package:csms/presentation/widgets/bottom_navbar_vending.dart';
 import 'package:flutter/material.dart';
 
@@ -9,6 +10,8 @@ Widget chooseNavBar(User session) {
     return const BottomNavBarAdmin();
   } else if (session.labels.contains("vending")) {
     return const BottomNavBarVending();
+  } else if (session.labels.contains("printer")) {
+    return const BottomNavBarPrinter();
   }
   return const BottomNavBar();
 }
