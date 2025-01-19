@@ -154,29 +154,47 @@ class PrintShopScreenState extends State<PrintShopScreen> {
 
     if (result != null) {
       final file = File(result.files.single.path!);
-      final extension =
-          path.extension(file.path).replaceAll('.', '').toLowerCase();
+      final extension = path.extension(file.path).replaceAll('.', '').toLowerCase();
 
       try {
-        int pageCount = 1; // Default for non-PDF files
+        setState(() {
+          isLoading = true;
+        });
+
+        int pageCount;
         if (extension == 'pdf') {
-          // Use pdf_render to get page count
+          // Use pdf_render to get page count for PDFs
           final pdfDocument = await PdfDocument.openFile(file.path);
           pageCount = pdfDocument.pageCount;
           await pdfDocument.dispose();
-        }
-
-        setState(() {
-          selectedFile = file;
-          fileName = path.basename(file.path);
-          numberOfPages = pageCount;
-          calculateCost();
-        });
-
-        if (pageCount == 0) {
+        } else if (['jpg', 'jpeg'].contains(extension)) {
+          // Image files count as 1 page
+          pageCount = 1;
+        } else if (extension == 'pptx') {
+          // For PPTX files, we'll need to implement a proper page counter
+          // For now, we'll show an error message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Error: Could not determine page count'),
+              content: Text('PPTX page counting not yet supported'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          pageCount = 1; // Default to 1 for now
+        } else {
+          pageCount = 1; // Default for unsupported files
+        }
+
+        if (pageCount > 0) {
+          setState(() {
+            selectedFile = file;
+            fileName = path.basename(file.path);
+            numberOfPages = pageCount;
+            calculateCost();
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error: Invalid page count detected'),
               backgroundColor: Colors.red,
             ),
           );
@@ -189,6 +207,10 @@ class PrintShopScreenState extends State<PrintShopScreen> {
           ),
         );
         debugPrint('Error processing file: $e');
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }
