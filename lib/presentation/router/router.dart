@@ -5,6 +5,7 @@ import 'package:csms/presentation/screens/error.dart';
 import 'package:csms/presentation/screens/landing.dart';
 import 'package:csms/presentation/screens/login.dart';
 import 'package:csms/presentation/screens/my_orders.dart';
+import 'package:csms/presentation/screens/my_prints.dart';
 import 'package:csms/presentation/screens/print_shop.dart';
 import 'package:csms/presentation/screens/profile.dart';
 import 'package:csms/presentation/screens/settings.dart';
@@ -139,6 +140,16 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const VendingOrders();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/my-prints',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const MyPrintsScreen();
         },
       ),
       transitionType: TransitionType.fadeIn,

@@ -181,6 +181,35 @@ class PrintShopScreenState extends State<PrintShopScreen> {
           return Scaffold(
             appBar: AppBar(
               title: const Text('Print Shop Upload'),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(60),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Card(
+                    child: InkWell(
+                      onTap: () => Navigator.pushNamed(context, '/my-prints'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.print),
+                            const SizedBox(width: 8),
+                            Text(
+                              'My Print Requests',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.chevron_right),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
             body: Stack(
               children: [
