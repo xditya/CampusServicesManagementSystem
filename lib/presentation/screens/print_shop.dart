@@ -3,6 +3,9 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:pdf_render/pdf_render.dart';
+import '../../models/print_request.dart';
+import '../../services/print_service.dart';
+import '../../helper/config.dart';
 
 class PrintShopScreen extends StatefulWidget {
   const PrintShopScreen({super.key});
@@ -146,6 +149,217 @@ class PrintShopScreenState extends State<PrintShopScreen> {
   PrintType _printType = PrintType.blackAndWhite;
   PrintSide _printSide = PrintSide.single;
 
+  final PrintService _printService = PrintService();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: account.get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          final session = snapshot.data;
+          if (session == null) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('You are not logged in'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/login');
+                      },
+                      child: const Text('Login'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Print Shop Upload'),
+            ),
+            body: Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (costBreakdown != null)
+                          CostBreakdownCard(breakdown: costBreakdown!),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Process Name',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a process name';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) => processName = value,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: pickFile,
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Upload File'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                          ),
+                        ),
+                        if (fileName != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text('Selected file: $fileName'),
+                          ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Number of Copies',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          initialValue: '1',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter number of copies';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              numberOfCopies = int.tryParse(value) ?? 1;
+                              calculateCost();
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Print Options',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Print Type:',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                                RadioListTile<PrintType>(
+                                  title: const Text('Color Print'),
+                                  subtitle: const Text('Cost per page: ₹10.0'),
+                                  value: PrintType.color,
+                                  groupValue: _printType,
+                                  onChanged: (PrintType? value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        _printType = value;
+                                        calculateCost();
+                                      });
+                                    }
+                                  },
+                                ),
+                                RadioListTile<PrintType>(
+                                  title: const Text('Black & White'),
+                                  subtitle: const Text('Cost per page: ₹1.5'),
+                                  value: PrintType.blackAndWhite,
+                                  groupValue: _printType,
+                                  onChanged: (PrintType? value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        _printType = value;
+                                        calculateCost();
+                                      });
+                                    }
+                                  },
+                                ),
+                                const Divider(height: 24),
+                                const Text(
+                                  'Print Side:',
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                                RadioListTile<PrintSide>(
+                                  title: const Text('Single Sided'),
+                                  value: PrintSide.single,
+                                  groupValue: _printSide,
+                                  onChanged: (PrintSide? value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        _printSide = value;
+                                        calculateCost();
+                                      });
+                                    }
+                                  },
+                                ),
+                                RadioListTile<PrintSide>(
+                                  title: const Text('Double Sided'),
+                                  value: PrintSide.double,
+                                  groupValue: _printSide,
+                                  onChanged: (PrintSide? value) {
+                                    if (value != null) {
+                                      setState(() {
+                                        _printSide = value;
+                                        calculateCost();
+                                      });
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => _submitPrintRequest(session.email),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                            backgroundColor: Colors.green,
+                          ),
+                          child: const Text(
+                            'Submit Print Request',
+                            style: TextStyle(fontSize: 18, color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (isLoading)
+                  Container(
+                    color: Colors.black54,
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -154,7 +368,8 @@ class PrintShopScreenState extends State<PrintShopScreen> {
 
     if (result != null) {
       final file = File(result.files.single.path!);
-      final extension = path.extension(file.path).replaceAll('.', '').toLowerCase();
+      final extension =
+          path.extension(file.path).replaceAll('.', '').toLowerCase();
 
       try {
         setState(() {
@@ -230,188 +445,58 @@ class PrintShopScreenState extends State<PrintShopScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Print Shop Upload'),
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (costBreakdown != null)
-                    CostBreakdownCard(breakdown: costBreakdown!),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Process Name',
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a process name';
-                      }
-                      return null;
-                    },
-                    onChanged: (value) => processName = value,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: pickFile,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Upload File'),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                  ),
-                  if (fileName != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text('Selected file: $fileName'),
-                    ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Number of Copies',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    initialValue: '1',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter number of copies';
-                      }
-                      return null;
-                    },
-                    onChanged: (value) {
-                      setState(() {
-                        numberOfCopies = int.tryParse(value) ?? 1;
-                        calculateCost();
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Print Options',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Print Type:',
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          RadioListTile<PrintType>(
-                            title: const Text('Color Print'),
-                            subtitle: const Text('Cost per page: ₹10.0'),
-                            value: PrintType.color,
-                            groupValue: _printType,
-                            onChanged: (PrintType? value) {
-                              if (value != null) {
-                                setState(() {
-                                  _printType = value;
-                                  calculateCost();
-                                });
-                              }
-                            },
-                          ),
-                          RadioListTile<PrintType>(
-                            title: const Text('Black & White'),
-                            subtitle: const Text('Cost per page: ₹1.5'),
-                            value: PrintType.blackAndWhite,
-                            groupValue: _printType,
-                            onChanged: (PrintType? value) {
-                              if (value != null) {
-                                setState(() {
-                                  _printType = value;
-                                  calculateCost();
-                                });
-                              }
-                            },
-                          ),
-                          const Divider(height: 24),
-                          const Text(
-                            'Print Side:',
-                            style: TextStyle(fontWeight: FontWeight.w500),
-                          ),
-                          RadioListTile<PrintSide>(
-                            title: const Text('Single Sided'),
-                            value: PrintSide.single,
-                            groupValue: _printSide,
-                            onChanged: (PrintSide? value) {
-                              if (value != null) {
-                                setState(() {
-                                  _printSide = value;
-                                  calculateCost();
-                                });
-                              }
-                            },
-                          ),
-                          RadioListTile<PrintSide>(
-                            title: const Text('Double Sided'),
-                            value: PrintSide.double,
-                            groupValue: _printSide,
-                            onChanged: (PrintSide? value) {
-                              if (value != null) {
-                                setState(() {
-                                  _printSide = value;
-                                  calculateCost();
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate() &&
-                          selectedFile != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Processing Print Request...'),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.green,
-                    ),
-                    child: const Text(
-                      'Submit Print Request',
-                      style: TextStyle(fontSize: 18, color: Colors.black),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  Future<void> _submitPrintRequest(String email) async {
+    if (_formKey.currentState!.validate() && selectedFile != null) {
+      try {
+        setState(() {
+          isLoading = true;
+        });
+
+        final fileBytes = await selectedFile!.readAsBytes();
+
+        final printRequest = PrintRequest(
+          processName: processName!,
+          fileName: fileName!,
+          fileBytes: fileBytes,
+          numberOfPages: numberOfPages,
+          numberOfCopies: numberOfCopies,
+          isColorPrint: _printType == PrintType.color,
+          isDoubleSided: _printSide == PrintSide.double,
+          totalCost: totalCost,
+          createdAt: DateTime.now(),
+        );
+
+        await _printService.savePrintRequest(email, printRequest);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Print request submitted successfully!'),
+            backgroundColor: Colors.green,
           ),
-          if (isLoading)
-            Container(
-              color: Colors.black54,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-        ],
-      ),
-    );
+        );
+
+        setState(() {
+          selectedFile = null;
+          fileName = null;
+          processName = null;
+          numberOfCopies = 1;
+          _printType = PrintType.blackAndWhite;
+          _printSide = PrintSide.single;
+          costBreakdown = null;
+        });
+        _formKey.currentState!.reset();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to submit print request: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 }
