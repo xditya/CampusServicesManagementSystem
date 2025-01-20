@@ -36,7 +36,8 @@ class MyPrintsScreen extends StatelessWidget {
                   );
                 }
 
-                final requests = snapshot.data ?? [];
+                final req = snapshot.data ?? [];
+                final requests = req.reversed.toList();
 
                 if (requests.isEmpty) {
                   return const Center(
@@ -137,58 +138,76 @@ class MyPrintsScreen extends StatelessWidget {
   void _showPrintDetails(BuildContext context, PrintRequest request) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Print Request Details',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              title: const Text('Process Name'),
-              subtitle: Text(request.processName),
-            ),
-            ListTile(
-              title: const Text('File Name'),
-              subtitle: Text(request.fileName),
-            ),
-            ListTile(
-              title: const Text('Pages'),
-              trailing: Text('${request.numberOfPages}'),
-            ),
-            ListTile(
-              title: const Text('Copies'),
-              trailing: Text('${request.numberOfCopies}'),
-            ),
-            ListTile(
-              title: const Text('Print Type'),
-              trailing: Text(request.isColorPrint ? 'Color' : 'Black & White'),
-            ),
-            ListTile(
-              title: const Text('Print Side'),
-              trailing:
-                  Text(request.isDoubleSided ? 'Double Sided' : 'Single Sided'),
-            ),
-            ListTile(
-              title: const Text('Total Cost'),
-              trailing: Text('₹${request.totalCost.toStringAsFixed(2)}'),
-            ),
-            ListTile(
-              title: const Text('Status'),
-              trailing: Chip(
-                label: Text(request.status),
-                backgroundColor: request.status == 'pending'
-                    ? Colors.blue.withOpacity(0.1)
-                    : request.status == 'completed'
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
+      isScrollControlled: true,
+      builder: (context) => SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Print Request Details',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              ListTile(
+                title: const Text('Process Name'),
+                subtitle: Text(request.processName),
+              ),
+              ListTile(
+                title: const Text('File Name'),
+                subtitle: Text(request.fileName),
+              ),
+              ListTile(
+                title: const Text('Pages'),
+                trailing: Text('${request.numberOfPages}'),
+              ),
+              ListTile(
+                title: const Text('Copies'),
+                trailing: Text('${request.numberOfCopies}'),
+              ),
+              ListTile(
+                title: const Text('Print Type'),
+                trailing:
+                    Text(request.isColorPrint ? 'Color' : 'Black & White'),
+              ),
+              ListTile(
+                title: const Text('Print Side'),
+                trailing: Text(
+                    request.isDoubleSided ? 'Double Sided' : 'Single Sided'),
+              ),
+              ListTile(
+                title: const Text('Total Cost'),
+                trailing: Text('₹${request.totalCost.toStringAsFixed(2)}'),
+              ),
+              ListTile(
+                title: const Text('Status'),
+                trailing: Chip(
+                  label: Text(request.status),
+                  backgroundColor: request.status == 'pending'
+                      ? Colors.blue.withOpacity(0.1)
+                      : request.status == 'completed'
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.grey.withOpacity(0.1),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

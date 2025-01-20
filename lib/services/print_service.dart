@@ -149,4 +149,29 @@ class PrintService {
       throw Exception('Failed to get file bytes: $e');
     }
   }
+
+  Future<Map<String, dynamic>> getPendingRequest(String userEmail) async {
+    try {
+      if (!_dbService.isConnected) {
+        await _dbService.connect();
+      }
+
+      final collection = _dbService.db.collection(collectionName);
+      final doc = await collection.findOne(where.eq('_id', userEmail));
+
+      if (doc == null || !doc.containsKey('requests')) {
+        throw Exception('Order not found');
+      }
+
+      final requests = doc['requests'] as List;
+      final pendingRequest = requests.firstWhere(
+        (req) => req['status'] == 'pending',
+        orElse: () => throw Exception('No pending request found'),
+      );
+
+      return pendingRequest as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Failed to get pending request: $e');
+    }
+  }
 }

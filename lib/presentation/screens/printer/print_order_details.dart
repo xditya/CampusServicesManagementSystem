@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../models/print_request.dart';
 import '../../../services/print_service.dart';
 import 'package:intl/intl.dart';
+import 'package:file_saver/file_saver.dart';
+import 'dart:typed_data';
+import 'package:bson/bson.dart';
 
 class PrintOrderDetails extends StatelessWidget {
   final String orderId;
@@ -119,20 +122,81 @@ class PrintOrderDetails extends StatelessWidget {
 
   Future<void> _downloadFile(BuildContext context) async {
     try {
-      // TODO: Implement file download
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('File downloaded successfully'),
-          backgroundColor: Colors.green,
-        ),
+      final printService = PrintService();
+
+      // Show loading indicator
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                CircularProgressIndicator(color: Colors.white),
+                SizedBox(width: 16),
+                Text('Downloading file...'),
+              ],
+            ),
+            duration: Duration(seconds: 15), // Longer duration for large files
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+
+      // Get the pending request to access file data
+      final pendingRequest = await printService.getPendingRequest(userEmail);
+      final fileBytes = (pendingRequest['fileBytes'] as BsonBinary).byteList;
+      final fileName = pendingRequest['fileName'] as String;
+
+      // Get file extension
+      final extension = fileName.split('.').last.toLowerCase();
+
+      // Determine mime type
+      MimeType mimeType;
+      switch (extension) {
+        case 'pdf':
+          mimeType = MimeType.pdf;
+          break;
+        case 'jpg':
+        case 'jpeg':
+          mimeType = MimeType.jpeg;
+          break;
+        case 'png':
+          mimeType = MimeType.png;
+          break;
+        default:
+          mimeType = MimeType.other;
+      }
+
+      // Save file
+      await FileSaver.instance.saveFile(
+        name: fileName,
+        bytes: Uint8List.fromList(fileBytes),
+        mimeType: mimeType,
+        ext: extension,
       );
+
+      if (context.mounted) {
+        // Clear the loading snackbar
+        ScaffoldMessenger.of(context).clearSnackBars();
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File downloaded successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to download file: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        // Clear the loading snackbar
+        ScaffoldMessenger.of(context).clearSnackBars();
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to download file: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
