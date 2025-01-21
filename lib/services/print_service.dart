@@ -1,6 +1,7 @@
 import '../models/print_request.dart';
 import '../helper/database/db_service.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import '../services/notification_service.dart';
 
 class PrintService {
   static const String collectionName = 'print_requests';
@@ -106,7 +107,6 @@ class PrintService {
       }
 
       final requests = doc['requests'] as List;
-      // Find the index of the pending request
       final requestIndex =
           requests.indexWhere((req) => req['status'] == 'pending');
 
@@ -119,6 +119,16 @@ class PrintService {
         where.eq('_id', userEmail),
         modify.set('requests.$requestIndex.status', status),
       );
+
+      // If status is completed, send notification
+      if (status == 'completed') {
+        final request = requests[requestIndex];
+        final processName = request['processName'] as String;
+        await NotificationService().sendPrintCompletedNotification(
+          userEmail,
+          processName,
+        );
+      }
     } catch (e) {
       throw Exception('Failed to update print request status: $e');
     }
