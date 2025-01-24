@@ -1,7 +1,11 @@
+import 'package:csms/services/websocket_service.dart';
+
 import '../models/print_request.dart';
 import '../helper/database/db_service.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import '../services/notification_service.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:convert';
 
 class PrintService {
   static const String collectionName = 'print_requests';
@@ -67,7 +71,7 @@ class PrintService {
       }
 
       final collection = _dbService.db.collection(collectionName);
-      final cursor = await collection.find();
+      final cursor = collection.find();
       final documents = await cursor.toList();
 
       // Transform the data structure to flatten requests with user email
@@ -120,13 +124,14 @@ class PrintService {
         modify.set('requests.$requestIndex.status', status),
       );
 
-      // If status is completed, send notification
+      // If status is completed, send WebSocket message
       if (status == 'completed') {
-        final request = requests[requestIndex];
-        final processName = request['processName'] as String;
-        await NotificationService().sendPrintCompletedNotification(
-          userEmail,
-          processName,
+        // Send WebSocket message
+        WebSocketService().sendMessage(
+          json.encode({
+            'type': 'print_completed',
+            'userEmail': userEmail,
+          }),
         );
       }
     } catch (e) {

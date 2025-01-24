@@ -17,3 +17,5 @@ Client client =
 final account = Account(client);
 
 Databases databases = Databases(client);
+
+final NOTIF_WEBSOCKET = dotenv.get('NOTIF_WEBSOCKET');

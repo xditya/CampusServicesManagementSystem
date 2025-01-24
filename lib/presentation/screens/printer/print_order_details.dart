@@ -1,3 +1,4 @@
+import 'package:csms/services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import '../../../models/print_request.dart';
 import '../../../services/print_service.dart';
@@ -5,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:file_saver/file_saver.dart';
 import 'dart:typed_data';
 import 'package:bson/bson.dart';
+import 'dart:convert';
 
 class PrintOrderDetails extends StatelessWidget {
   final String orderId;
@@ -228,6 +230,16 @@ class PrintOrderDetails extends StatelessWidget {
     try {
       final printService = PrintService();
       await printService.updatePrintRequestStatus(orderId, 'completed');
+
+      // Send WebSocket notification with process name
+      WebSocketService().sendMessage(
+        json.encode({
+          'type': 'print_completed',
+          'userEmail': userEmail,
+          'message':
+              'Your print request "${request.processName}" has been completed',
+        }),
+      );
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -4,18 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:csms/presentation/providers/theme_provider.dart';
 import 'package:csms/helper/database/db_service.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'services/notification_service.dart';
 import 'firebase_options.dart';
+import 'services/websocket_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize connectivity plugin
+  await Connectivity().checkConnectivity();
+
   await dotenv.load(fileName: ".env");
   await DBService().connect();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
   await NotificationService().init();
+  await WebSocketService().connect();
   runApp(const MyApp());
 }
 
