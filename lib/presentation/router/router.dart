@@ -6,6 +6,7 @@ import 'package:csms/presentation/screens/landing.dart';
 import 'package:csms/presentation/screens/login.dart';
 import 'package:csms/presentation/screens/my_orders.dart';
 import 'package:csms/presentation/screens/my_prints.dart';
+import 'package:csms/presentation/screens/pink_slips.dart';
 import 'package:csms/presentation/screens/print_shop.dart';
 import 'package:csms/presentation/screens/printer/printer_orders.dart';
 import 'package:csms/presentation/screens/profile.dart';
@@ -161,6 +162,16 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const PrinterOrders();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/pink-slip',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const PinkSlipsPage();
         },
       ),
       transitionType: TransitionType.fadeIn,
