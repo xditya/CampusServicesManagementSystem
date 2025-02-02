@@ -1,5 +1,4 @@
-import 'package:csms/helper/vending_items.dart';
-import 'package:flutter/foundation.dart';
+import 'package:csms/helper/data/vending_items.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';

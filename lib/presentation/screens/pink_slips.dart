@@ -1,3 +1,5 @@
+import 'package:csms/helper/config.dart';
+import 'package:csms/helper/data/faculties.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -13,6 +15,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
   final _studentNameController = TextEditingController();
   final _requestSubjectController = TextEditingController();
   final _rollNoController = TextEditingController();
+  final _branchController = TextEditingController();
   final _requestController = TextEditingController();
   final _dateController = TextEditingController();
 
@@ -25,14 +28,30 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
   final List<String> _classes = ['1', '2'];
   late List<String> _batches;
 
+  String? _selectedAdvisor;
+  String? _selectedFaculty;
+  bool _includePrincipal = false;
+
+  final _advisors = Faculties().advisors;
+  final _allFaculty = Faculties().allFaculty;
+  final _hods = Faculties().hods;
+  final _principal = Faculties().principal;
+
   @override
   void initState() {
     super.initState();
     _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    _loadUserName();
 
-    // Generate batch years
     final currentYear = DateTime.now().year;
-    _batches = List.generate(6, (index) => (currentYear + index).toString());
+    _batches = List.generate(4, (index) => (currentYear + index).toString());
+  }
+
+  Future<void> _loadUserName() async {
+    final session = await account.get();
+    setState(() {
+      _studentNameController.text = session.name;
+    });
   }
 
   @override
@@ -63,6 +82,15 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
         TextPosition(offset: _rollNoController.text.length),
       );
     }
+  }
+
+  void _updateBranchController() {
+    String branchName = _selectedBranch != null ? _hods[_selectedBranch]! : '';
+    _branchController.text = branchName;
+    // Place cursor at the end
+    _branchController.selection = TextSelection.fromPosition(
+      TextPosition(offset: branchName.length),
+    );
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -172,6 +200,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                             onChanged: (value) {
                               setState(() {
                                 _selectedBranch = value;
+                                _updateBranchController();
                                 _updateRollNumberPrefix();
                               });
                             },
@@ -263,27 +292,78 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'Submit Request',
-                              style: TextStyle(fontSize: 16),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Approvals Required',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildDropdown(
+                            label: 'Advisor *',
+                            value: _selectedAdvisor,
+                            items: _selectedBranch != null &&
+                                    _selectedBatch != null &&
+                                    _selectedClass != null
+                                ? _advisors[_selectedBranch]![_selectedBatch!
+                                    .toInt()]![_selectedClass!.toInt()]!
+                                : [],
+                            prefixIcon: Icons.person,
+                            onChanged: (value) {
+                              setState(() => _selectedAdvisor = value);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSearchableDropdown(
+                            label: 'Faculty (Optional)',
+                            value: _selectedFaculty,
+                            items: _allFaculty,
+                            onChanged: (value) {
+                              setState(() => _selectedFaculty = value);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _branchController,
+                            // initialValue: _selectedBranch != null
+                            //     ? _hods[_selectedBranch]
+                            //     : '',
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              labelText: 'HOD *',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              prefixIcon: const Icon(Icons.person_2),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          CheckboxListTile(
+                            title: const Text('Include Principal Approval'),
+                            subtitle: Text(_principal),
+                            value: _includePrincipal,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _includePrincipal = value ?? false;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  _buildButtons(),
                 ],
               ),
             ),
@@ -389,6 +469,81 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
     );
   }
 
+  Widget _buildSearchableDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        suffixIcon: value != null
+            ? IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () => onChanged(null),
+              )
+            : null,
+      ),
+      items: items.map((String item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(item),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      isExpanded: true,
+      selectedItemBuilder: (context) {
+        return items.map((item) {
+          return SearchAnchor(
+            builder: (context, controller) {
+              return Text(value ?? '');
+            },
+            suggestionsBuilder: (context, controller) {
+              final keyword = controller.text.toLowerCase();
+              return items
+                  .where((item) => item.toLowerCase().contains(keyword))
+                  .map((item) => ListTile(
+                        title: Text(item),
+                        onTap: () {
+                          onChanged(item);
+                          controller.closeView(item);
+                        },
+                      ));
+            },
+          );
+        }).toList();
+      },
+    );
+  }
+
+  Widget _buildButtons() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _submitForm,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'Submit Request',
+                style: TextStyle(fontSize: 16),
+              ),
+      ),
+    );
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedBranch == null ||
@@ -407,6 +562,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
 
       try {
         // TODO: Implement form submission
+
         await Future.delayed(const Duration(seconds: 2));
 
         if (mounted) {
@@ -433,5 +589,11 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
         }
       }
     }
+  }
+}
+
+extension on String {
+  toInt() {
+    return int.parse(this);
   }
 }

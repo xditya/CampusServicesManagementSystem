@@ -1,7 +1,7 @@
 import 'package:csms/helper/config.dart';
 import 'package:csms/helper/database/db_service.dart';
 import 'package:csms/helper/database/vending_db.dart';
-import 'package:csms/helper/vending_items.dart';
+import 'package:csms/helper/data/vending_items.dart';
 import 'package:csms/presentation/widgets/bottom_navbar_vending.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

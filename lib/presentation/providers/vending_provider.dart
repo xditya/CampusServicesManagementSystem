@@ -1,4 +1,4 @@
-import 'package:csms/helper/vending_items.dart';
+import 'package:csms/helper/data/vending_items.dart';
 import 'package:flutter/foundation.dart';
 import 'package:csms/helper/database/balance_db.dart';
 import 'package:csms/helper/database/vending_db.dart';

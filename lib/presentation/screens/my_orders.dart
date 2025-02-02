@@ -4,7 +4,7 @@ import 'package:csms/helper/database/vending_db.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:csms/presentation/providers/vending_provider.dart';
-import 'package:csms/helper/vending_items.dart';
+import 'package:csms/helper/data/vending_items.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class MyOrdersScreen extends StatelessWidget {
