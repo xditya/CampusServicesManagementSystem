@@ -1,11 +1,10 @@
 import 'package:csms/presentation/router/router.dart';
-import 'package:csms/presentation/screens/error.dart';
+import 'package:csms/presentation/screens/common/error.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:csms/presentation/providers/theme_provider.dart';
 import 'package:csms/helper/database/db_service.dart';
 import 'services/notification_service.dart';
-import 'firebase_options.dart';
 import 'services/websocket_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/print_service.dart';
-import '../../models/print_request.dart';
-import '../../helper/config.dart';
+import '../../../services/print_service.dart';
+import '../../../models/print_request.dart';
+import '../../../helper/config.dart';
 
 class MyPrintsScreen extends StatelessWidget {
   const MyPrintsScreen({super.key});

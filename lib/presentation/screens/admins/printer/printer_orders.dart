@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../../../helper/config.dart';
-import '../../../helper/database/db_service.dart';
-import '../../../models/print_request.dart';
-import '../../../services/print_service.dart';
-import '../../widgets/bottom_navbar_printer.dart';
-import '../../screens/printer/print_order_details.dart';
+import '../../../../models/print_request.dart';
+import '../../../../services/print_service.dart';
+import '../../../widgets/bottom_navbar_printer.dart';
+import 'print_order_details.dart';
 
 class PrinterOrders extends StatefulWidget {
   const PrinterOrders({super.key});

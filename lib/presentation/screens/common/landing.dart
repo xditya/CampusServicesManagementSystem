@@ -1,6 +1,6 @@
 import 'package:csms/helper/config.dart';
 import 'package:csms/helper/navigate_users.dart';
-import 'package:csms/presentation/screens/login.dart';
+import 'package:csms/presentation/screens/common/login.dart';
 import 'package:flutter/material.dart';
 
 class LandingScreen extends StatelessWidget {
