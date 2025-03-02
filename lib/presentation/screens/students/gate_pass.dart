@@ -1,7 +1,7 @@
-import 'package:csms/helper/config.dart';
 import 'package:csms/helper/data/faculties.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:csms/presentation/widgets/student_info_card.dart';
 
 class GatePassPage extends StatefulWidget {
   const GatePassPage({super.key});
@@ -12,8 +12,6 @@ class GatePassPage extends StatefulWidget {
 
 class _GatePassPageState extends State<GatePassPage> {
   final _formKey = GlobalKey<FormState>();
-  final _studentNameController = TextEditingController();
-  final _rollNoController = TextEditingController();
   final _reasonController = TextEditingController();
   final _dateController = TextEditingController();
   final _timeFromController = TextEditingController();
@@ -22,138 +20,25 @@ class _GatePassPageState extends State<GatePassPage> {
   String? _selectedBranch;
   String? _selectedClass;
   String? _selectedBatch;
+  String _rollNo = '';
   bool _isLoading = false;
-
-  final List<String> _branches = ['EC', 'CS', 'EEE', 'ME', 'CE', 'EL'];
-  final List<String> _classes = ['1', '2'];
-  late List<String> _batches;
 
   String? _selectedAdvisor;
   final _advisors = Faculties().advisors;
-  final _hods = Faculties().hods;
 
   @override
   void initState() {
     super.initState();
     _dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
-    _loadUserName();
-
-    final currentYear = DateTime.now().year;
-    _batches = List.generate(4, (index) => (currentYear + index).toString());
-  }
-
-  Future<void> _loadUserName() async {
-    final session = await account.get();
-    setState(() {
-      _studentNameController.text = session.name;
-    });
   }
 
   @override
   void dispose() {
-    _studentNameController.dispose();
-    _rollNoController.dispose();
     _reasonController.dispose();
     _dateController.dispose();
     _timeFromController.dispose();
     _timeToController.dispose();
     super.dispose();
-  }
-
-  void _updateRollNumberPrefix() {
-    if (_selectedBatch != null && _selectedBranch != null) {
-      final year = int.parse(_selectedBatch!) - 4;
-      final yearPrefix = year.toString().substring(year.toString().length - 2);
-      final rollPrefix = 'B$yearPrefix${_selectedBranch!}';
-      final currentText = _rollNoController.text;
-      final suffixText = currentText.length > rollPrefix.length
-          ? currentText.substring(rollPrefix.length)
-          : '';
-      _rollNoController.text = rollPrefix + suffixText;
-      _rollNoController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _rollNoController.text.length),
-      );
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime currentDate = _dateController.text.isNotEmpty
-        ? DateFormat('dd/MM/yyyy').parse(_dateController.text)
-        : DateTime.now();
-
-    final DateTime? picked = await showModalBottomSheet<DateTime>(
-      context: context,
-      builder: (BuildContext context) {
-        DateTime selectedDate = currentDate;
-
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.4,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                  Text(
-                    'Select Date',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, selectedDate),
-                    child: const Text('Done'),
-                  ),
-                ],
-              ),
-              const Divider(),
-              Expanded(
-                child: CalendarDatePicker(
-                  initialDate: currentDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(currentDate.year + 1),
-                  onDateChanged: (DateTime date) {
-                    selectedDate = date;
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-    );
-
-    if (picked != null) {
-      setState(() {
-        _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
-      });
-    }
-  }
-
-  Future<void> _selectTime(
-      BuildContext context, TextEditingController controller) async {
-    final TimeOfDay initialTime = controller.text.isNotEmpty
-        ? TimeOfDay.fromDateTime(DateFormat.jm().parse(controller.text))
-        : TimeOfDay.now();
-
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-
-    if (picked != null) {
-      setState(() {
-        controller.text = picked.format(context);
-      });
-    }
   }
 
   @override
@@ -171,73 +56,15 @@ class _GatePassPageState extends State<GatePassPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Student Information',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            label: 'Student Name',
-                            controller: _studentNameController,
-                            prefixIcon: Icons.person,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Branch',
-                            value: _selectedBranch,
-                            items: _branches,
-                            prefixIcon: Icons.category,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedBranch = value;
-                                _updateRollNumberPrefix();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Class',
-                            value: _selectedClass,
-                            items: _classes,
-                            prefixIcon: Icons.class_,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedClass = value;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Batch',
-                            value: _selectedBatch,
-                            items: _batches,
-                            prefixIcon: Icons.calendar_view_month,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedBatch = value;
-                                _updateRollNumberPrefix();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            label: 'Roll No.',
-                            controller: _rollNoController,
-                            prefixIcon: Icons.numbers,
-                            readOnly: false,
-                          ),
-                        ],
-                      ),
-                    ),
+                  StudentInfoCard(
+                    onBranchChanged: (value) =>
+                        setState(() => _selectedBranch = value),
+                    onClassChanged: (value) =>
+                        setState(() => _selectedClass = value),
+                    onBatchChanged: (value) =>
+                        setState(() => _selectedBatch = value),
+                    onRollNumberChanged: (value) =>
+                        setState(() => _rollNo = value),
                   ),
                   const SizedBox(height: 16),
                   Card(
@@ -278,7 +105,6 @@ class _GatePassPageState extends State<GatePassPage> {
                             controller: _dateController,
                             prefixIcon: Icons.calendar_today,
                             readOnly: true,
-                            onTap: () => _selectDate(context),
                           ),
                           const SizedBox(height: 16),
                           Row(
@@ -289,8 +115,6 @@ class _GatePassPageState extends State<GatePassPage> {
                                   controller: _timeFromController,
                                   prefixIcon: Icons.access_time,
                                   readOnly: true,
-                                  onTap: () =>
-                                      _selectTime(context, _timeFromController),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -300,8 +124,6 @@ class _GatePassPageState extends State<GatePassPage> {
                                   controller: _timeToController,
                                   prefixIcon: Icons.access_time,
                                   readOnly: true,
-                                  onTap: () =>
-                                      _selectTime(context, _timeToController),
                                 ),
                               ),
                             ],
@@ -366,42 +188,20 @@ class _GatePassPageState extends State<GatePassPage> {
     required TextEditingController controller,
     required IconData prefixIcon,
     bool readOnly = false,
-    VoidCallback? onTap,
   }) {
-    final bool isRollNumberEnabled = label == 'Roll No.'
-        ? (_selectedBatch != null && _selectedBranch != null)
-        : true;
-
     return TextFormField(
       controller: controller,
-      readOnly: readOnly || (label == 'Roll No.' && !isRollNumberEnabled),
+      readOnly: readOnly,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),
         prefixIcon: Icon(prefixIcon),
-        helperText: label == 'Roll No.'
-            ? isRollNumberEnabled
-                ? 'Auto-filled prefix must be preserved'
-                : 'Select batch and branch first'
-            : null,
       ),
-      onTap: onTap,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
-        }
-        if (label == 'Roll No.' &&
-            _selectedBatch != null &&
-            _selectedBranch != null) {
-          final year = int.parse(_selectedBatch!) - 4;
-          final yearPrefix =
-              year.toString().substring(year.toString().length - 2);
-          final expectedPrefix = 'B$yearPrefix${_selectedBranch!}';
-          if (!value.startsWith(expectedPrefix)) {
-            return 'Roll number must start with $expectedPrefix';
-          }
         }
         return null;
       },

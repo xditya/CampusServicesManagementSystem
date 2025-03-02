@@ -1,6 +1,6 @@
-import 'package:csms/helper/config.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:csms/presentation/widgets/student_info_card.dart';
 
 class VehiclePassPage extends StatefulWidget {
   const VehiclePassPage({super.key});
@@ -11,8 +11,6 @@ class VehiclePassPage extends StatefulWidget {
 
 class _VehiclePassPageState extends State<VehiclePassPage> {
   final _formKey = GlobalKey<FormState>();
-  final _studentNameController = TextEditingController();
-  final _rollNoController = TextEditingController();
   final _vehicleNumberController = TextEditingController();
   final _hoursController = TextEditingController();
   final _timeFromController = TextEditingController();
@@ -20,6 +18,7 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
   String? _selectedBranch;
   String? _selectedClass;
   String? _selectedBatch;
+  String _rollNo = '';
   bool _isLoading = false;
 
   final List<String> _branches = ['EC', 'CS', 'EEE', 'ME', 'CE', 'EL'];
@@ -29,23 +28,13 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserName();
 
     final currentYear = DateTime.now().year;
     _batches = List.generate(4, (index) => (currentYear + index).toString());
   }
 
-  Future<void> _loadUserName() async {
-    final session = await account.get();
-    setState(() {
-      _studentNameController.text = session.name;
-    });
-  }
-
   @override
   void dispose() {
-    _studentNameController.dispose();
-    _rollNoController.dispose();
     _vehicleNumberController.dispose();
     _hoursController.dispose();
     _timeFromController.dispose();
@@ -57,14 +46,11 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
       final year = int.parse(_selectedBatch!) - 4;
       final yearPrefix = year.toString().substring(year.toString().length - 2);
       final rollPrefix = 'B$yearPrefix${_selectedBranch!}';
-      final currentText = _rollNoController.text;
+      final currentText = _rollNo;
       final suffixText = currentText.length > rollPrefix.length
           ? currentText.substring(rollPrefix.length)
           : '';
-      _rollNoController.text = rollPrefix + suffixText;
-      _rollNoController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _rollNoController.text.length),
-      );
+      _rollNo = rollPrefix + suffixText;
     }
   }
 
@@ -101,74 +87,19 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Student Information',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            label: 'Student Name',
-                            controller: _studentNameController,
-                            prefixIcon: Icons.person,
-                            readOnly: true,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Branch',
-                            value: _selectedBranch,
-                            items: _branches,
-                            prefixIcon: Icons.category,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedBranch = value;
-                                _updateRollNumberPrefix();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Class',
-                            value: _selectedClass,
-                            items: _classes,
-                            prefixIcon: Icons.class_,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedClass = value;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Batch',
-                            value: _selectedBatch,
-                            items: _batches,
-                            prefixIcon: Icons.calendar_view_month,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedBatch = value;
-                                _updateRollNumberPrefix();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            label: 'Roll No.',
-                            controller: _rollNoController,
-                            prefixIcon: Icons.numbers,
-                            readOnly: false,
-                          ),
-                        ],
-                      ),
-                    ),
+                  StudentInfoCard(
+                    onBranchChanged: (value) {
+                      setState(() => _selectedBranch = value);
+                    },
+                    onClassChanged: (value) {
+                      setState(() => _selectedClass = value);
+                    },
+                    onBatchChanged: (value) {
+                      setState(() => _selectedBatch = value);
+                    },
+                    onRollNumberChanged: (value) {
+                      setState(() => _rollNo = value);
+                    },
                   ),
                   const SizedBox(height: 16),
                   Card(
@@ -239,13 +170,9 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
     String? helperText,
     VoidCallback? onTap,
   }) {
-    final bool isRollNumberEnabled = label == 'Roll No.'
-        ? (_selectedBatch != null && _selectedBranch != null)
-        : true;
-
     return TextFormField(
       controller: controller,
-      readOnly: readOnly || (label == 'Roll No.' && !isRollNumberEnabled),
+      readOnly: readOnly,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
@@ -253,37 +180,12 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
           borderRadius: BorderRadius.circular(8),
         ),
         prefixIcon: Icon(prefixIcon),
-        helperText: label == 'Roll No.'
-            ? isRollNumberEnabled
-                ? 'Auto-filled prefix must be preserved'
-                : 'Select batch and branch first'
-            : helperText,
+        helperText: helperText,
       ),
-      onTap: onTap ??
-          () {
-            if (label == 'Roll No.' && !isRollNumberEnabled) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Please select batch and branch first'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            }
-          },
+      onTap: onTap,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
-        }
-        if (label == 'Roll No.' &&
-            _selectedBatch != null &&
-            _selectedBranch != null) {
-          final year = int.parse(_selectedBatch!) - 4;
-          final yearPrefix =
-              year.toString().substring(year.toString().length - 2);
-          final expectedPrefix = 'B$yearPrefix${_selectedBranch!}';
-          if (!value.startsWith(expectedPrefix)) {
-            return 'Roll number must start with $expectedPrefix';
-          }
         }
         if (label == 'Hours Required') {
           try {
@@ -297,38 +199,6 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
         }
         if (label == 'Vehicle Number' && value.trim().isEmpty) {
           return 'Please enter a valid vehicle number';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildDropdown({
-    required String label,
-    required String? value,
-    required List<String> items,
-    required IconData prefixIcon,
-    required void Function(String?) onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        prefixIcon: Icon(prefixIcon),
-      ),
-      items: items.map((String item) {
-        return DropdownMenuItem<String>(
-          value: item,
-          child: Text(item),
-        );
-      }).toList(),
-      onChanged: onChanged,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please select $label';
         }
         return null;
       },

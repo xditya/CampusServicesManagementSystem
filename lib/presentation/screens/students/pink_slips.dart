@@ -2,6 +2,7 @@ import 'package:csms/helper/config.dart';
 import 'package:csms/helper/data/faculties.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:csms/presentation/widgets/student_info_card.dart';
 
 class PinkSlipsPage extends StatefulWidget {
   const PinkSlipsPage({super.key});
@@ -61,6 +62,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
     _rollNoController.dispose();
     _requestController.dispose();
     _dateController.dispose();
+    _branchController.dispose();
     super.dispose();
   }
 
@@ -172,74 +174,19 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Student Information',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            label: 'Student Name',
-                            controller: _studentNameController,
-                            prefixIcon: Icons.person,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Branch',
-                            value: _selectedBranch,
-                            items: _branches,
-                            prefixIcon: Icons.category,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedBranch = value;
-                                _updateBranchController();
-                                _updateRollNumberPrefix();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Class',
-                            value: _selectedClass,
-                            items: _classes,
-                            prefixIcon: Icons.class_,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedClass = value;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Batch',
-                            value: _selectedBatch,
-                            items: _batches,
-                            prefixIcon: Icons.calendar_view_month,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedBatch = value;
-                                _updateRollNumberPrefix();
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            label: 'Roll No.',
-                            controller: _rollNoController,
-                            prefixIcon: Icons.numbers,
-                            readOnly: false,
-                          ),
-                        ],
-                      ),
-                    ),
+                  StudentInfoCard(
+                    onBranchChanged: (value) {
+                      setState(() {
+                        _selectedBranch = value;
+                        _updateBranchController();
+                      });
+                    },
+                    onClassChanged: (value) =>
+                        setState(() => _selectedClass = value),
+                    onBatchChanged: (value) =>
+                        setState(() => _selectedBatch = value),
+                    onRollNumberChanged: (value) =>
+                        setState(() => _rollNoController.text = value),
                   ),
                   const SizedBox(height: 16),
                   Card(

@@ -6,6 +6,7 @@ import 'package:csms/presentation/screens/common/error.dart';
 import 'package:csms/presentation/screens/common/landing.dart';
 import 'package:csms/presentation/screens/common/login.dart';
 import 'package:csms/presentation/screens/students/gate_pass.dart';
+import 'package:csms/presentation/screens/students/lab_permission.dart';
 import 'package:csms/presentation/screens/students/my_orders.dart';
 import 'package:csms/presentation/screens/students/my_prints.dart';
 import 'package:csms/presentation/screens/students/pink_slips.dart';
@@ -205,6 +206,16 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const VehiclePassPage();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/lab-permission',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const LabPermissionPage();
         },
       ),
       transitionType: TransitionType.fadeIn,
