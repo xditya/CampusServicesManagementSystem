@@ -7,6 +7,8 @@ import 'package:csms/presentation/screens/common/landing.dart';
 import 'package:csms/presentation/screens/common/login.dart';
 import 'package:csms/presentation/screens/students/gate_pass.dart';
 import 'package:csms/presentation/screens/students/lab_permission.dart';
+import 'package:csms/presentation/screens/students/leave_form.dart';
+import 'package:csms/presentation/screens/students/lost_id.dart';
 import 'package:csms/presentation/screens/students/my_orders.dart';
 import 'package:csms/presentation/screens/students/my_prints.dart';
 import 'package:csms/presentation/screens/students/pink_slips.dart';
@@ -216,6 +218,26 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const LabPermissionPage();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/leave-form',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const LeaveFormPage();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/lost-id-card',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const LostIdPage();
         },
       ),
       transitionType: TransitionType.fadeIn,

@@ -95,7 +95,7 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
               label: 'Student Name',
               controller: _studentNameController,
               prefixIcon: Icons.person,
-              readOnly: true,
+              readOnly: _studentNameController.text.isNotEmpty,
             ),
             const SizedBox(height: 16),
             _buildTextField(
