@@ -28,7 +28,7 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
   String? _selectedClass;
   String? _selectedBatch;
 
-  final List<String> _branches = ['EC', 'CS', 'EEE', 'ME', 'CE', 'EL'];
+  final List<String> _branches = ['EC', 'CS', 'EEE', 'ME', 'CE', 'EL', 'ADMIN'];
   final List<String> _classes = ['1', '2'];
   late List<String> _batches;
 

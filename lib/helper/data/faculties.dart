@@ -1,5 +1,23 @@
 class Faculties {
   final Map<String, Map<int, Map<int, List<String>>>> advisors = {
+    'ADMIN': {
+      2025: {
+        1: ['Admin'],
+        2: ['Admin'],
+      },
+      2026: {
+        1: ['Admin'],
+        2: ['Admin'],
+      },
+      2027: {
+        1: ['Admin'],
+        2: ['Admin'],
+      },
+      2028: {
+        1: ['Admin'],
+        2: ['Admin'],
+      }
+    },
     'CS': {
       2025: {
         1: ['Prof. Sarah CS', 'Dr. Mike CS'],
@@ -115,10 +133,84 @@ class Faculties {
     }
   };
 
-  final List<String> allFaculty = [
-    'Dr. Faculty 1', 'Prof. Faculty 2', 'Dr. Faculty 3',
-    // Add more faculty names...
-  ];
+  final Map<String, String> allFacultyEmails = {
+    'Dr. Jisha John': 'jishajohn@mbcet.ac.in',
+    'Ms. Gayathri K. S.': 'gayathri@mbcet.ac.in',
+    'Mr. Anand Haridas': 'anandharidas@mbcet.ac.in',
+    'Mr. Shon J Das': 'shonjdas@mbcet.ac.in',
+    'Ms. Vijitha Robinson': 'vijitharobinson@mbcet.ac.in',
+    'Ms. Bibi Annie Oommen': 'bibiannie@mbcet.ac.in',
+    'Ms. Jisha Jose': 'jishajose@mbcet.ac.in',
+    'Mr. Ramjith R P': 'ramjithrp@mbcet.ac.in',
+    'Ms. Gauri Shree V.K': 'gaurishree@mbcet.ac.in',
+    'Ms. S. Asha': 'asha@mbcet.ac.in',
+    'Dr. Priya Mariam Raju': 'priyamariam@mbcet.ac.in',
+    'Ms. Anjali S': 'anjalis@mbcet.ac.in',
+    'Ms. Lino Zachariah': 'linozachariah@mbcet.ac.in',
+    'Mr. V. S. Shibu': 'shibu@mbcet.ac.in',
+    'Mr. Shiras S. N.': 'shiras@mbcet.ac.in',
+    'Ms. Salga Ann Jacob': 'salgaann@mbcet.ac.in',
+    'Ms. Merin Philip': 'merinphilip@mbcet.ac.in',
+    'Dr. Swapna P. S.': 'swapnaps@mbcet.ac.in',
+    'Mr. Jinu Baby': 'jinubaby@mbcet.ac.in',
+    'Ms. Lakshmy S.': 'lakshmys@mbcet.ac.in',
+    'Dr. Vineetha Mathai': 'vineethamathai@mbcet.ac.in',
+    'Mr. Niyas K Haneefa': 'niyashaneefa@mbcet.ac.in',
+    'Mr. Sherry Varghese George': 'sherryvarghese@mbcet.ac.in',
+    'Dr. Ancy S. Anselam': 'ancyanselam@mbcet.ac.in',
+    'Ms. Gouri Nandhana': 'gourinandhana@mbcet.ac.in',
+    'Mr. Anoop K. Johnson': 'anoopjohnson@mbcet.ac.in',
+    'Ms. Amritha B. J.': 'amrithabj@mbcet.ac.in',
+    'Ms. Nithya Mohanan': 'nithyamohanan@mbcet.ac.in',
+    'Dr. Sreedevi P.': 'sreedevi@mbcet.ac.in',
+    'Mr. Arun J. S.': 'arunjs@mbcet.ac.in',
+    'Ms. Deepa P. L.': 'deepapl@mbcet.ac.in',
+    'Dr. Soumya A. V.': 'soumyaav@mbcet.ac.in',
+    'Mr. Aswin R B': 'aswinrb@mbcet.ac.in',
+    'Ms. Vandana P': 'vandanap@mbcet.ac.in',
+    'Dr. Dishore S V': 'dishoresv@mbcet.ac.in',
+    'Ms. Shilpa Susan Peter': 'shilpapeter@mbcet.ac.in',
+    'Ms. Charivil Sojy Rajan': 'charivilrajan@mbcet.ac.in',
+    'Ms. Surasmi N L': 'surasmil@mbcet.ac.in',
+    'Ms. Revathy K P': 'revathykp@mbcet.ac.in',
+    'Mr. Ayush Vijayan': 'ayushvijayan@mbcet.ac.in',
+    'Mr. Roshan George Koshy': 'roshangeorge@mbcet.ac.in',
+    'Mr. Vaisakh S Nair': 'vaisakh@mbcet.ac.in',
+    'Ms. Ruby Maria Syriac': 'rubymaria@mbcet.ac.in',
+    'Dr. Arvind P': 'arvindp@mbcet.ac.in',
+    'Dr. Nidhi M B': 'nidhimb@mbcet.ac.in',
+    'Dr. Minu Ann Peter': 'minuann@mbcet.ac.in',
+    'Mr. Sreeju Nair S B': 'sreejunair@mbcet.ac.in',
+    'Ms. Indhu Luke': 'indhuluke@mbcet.ac.in',
+    'Dr. Anupama Krishna D': 'anupamakrishna@mbcet.ac.in',
+    'Mr. U P Govind': 'upgovind@mbcet.ac.in',
+    'Ms. Rintu Johnson': 'rintujohnson@mbcet.ac.in',
+    'Ms. Radhika P': 'radhikap@mbcet.ac.in',
+    'Ms. Rakhi J H': 'rakhijh@mbcet.ac.in',
+    'Ms. Sangeetha Sajeev': 'sangeethasajeev@mbcet.ac.in',
+    'Dr. Alice Thomas': 'alicethomas@mbcet.ac.in',
+    'Mr. Sijo M Saji': 'sijosaji@mbcet.ac.in',
+    'Ms. Lekshmi Chandran M': 'lekshmichandran@mbcet.ac.in',
+    'Dr. Archana J. Satheesh': 'archanasatheesh@mbcet.ac.in',
+    'Ms. Ansu Mathew': 'ansumathew@mbcet.ac.in',
+    'Mr. Nitin S': 'nitins@mbcet.ac.in',
+    'Dr. Sheryl Arulini. A': 'sherylarulini@mbcet.ac.in',
+    'Dr. Elizabeth Varghese': 'elizabethvarghese@mbcet.ac.in',
+    'Ms. Manju Sreekumar': 'manjusreekumar@mbcet.ac.in',
+    'Dr. Anil J.': 'anilj@mbcet.ac.in',
+    'Ms. Neetha Chandran': 'neethachandran@mbcet.ac.in',
+    'Ms. P. Sandhya': 'sandhyap@mbcet.ac.in',
+    'Mr. Midhun G.': 'midhung@mbcet.ac.in',
+    'Ms. Vrinda Prasad': 'vrindaprasad@mbcet.ac.in',
+    'Ms. Sheenu P.': 'sheenup@mbcet.ac.in',
+    'Dr. S. Viswanatha Rao': 'principal@mbcet.ac.in',
+    'Dr. Luxy Mathews': 'luxymathews@mbcet.ac.in',
+    'Dr. Remil George Thomas': 'remilgeorge@mbcet.ac.in',
+    'Dr. Jisha S.V': 'jishasv@mbcet.ac.in',
+    'Admin': 'contact@xditya.me'
+  };
+
+  List<String> get allFaculty => allFacultyEmails.keys.toList();
 
   final Map<String, String> hods = {
     'CS': 'Dr. Jisha John',
@@ -127,6 +219,7 @@ class Faculties {
     'ME': 'Dr. Remil George Thomas',
     'CE': 'Dr. Jisha S.V',
     'EL': '',
+    'ADMIN': 'Admin'
   };
 
   final String principal = 'Dr. S. Viswanatha Rao';

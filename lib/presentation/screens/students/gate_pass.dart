@@ -1,7 +1,10 @@
+import 'package:csms/helper/config.dart';
 import 'package:csms/helper/data/faculties.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:csms/presentation/widgets/student_info_card.dart';
+import 'package:csms/helper/database/gate_pass_db.dart' as gate_pass_db;
+import 'my_passes.dart';
 
 class GatePassPage extends StatefulWidget {
   const GatePassPage({super.key});
@@ -12,6 +15,7 @@ class GatePassPage extends StatefulWidget {
 
 class _GatePassPageState extends State<GatePassPage> {
   final _formKey = GlobalKey<FormState>();
+  final _studentNameController = TextEditingController();
   final _reasonController = TextEditingController();
   final _dateController = TextEditingController();
   final _timeFromController = TextEditingController();
@@ -24,7 +28,11 @@ class _GatePassPageState extends State<GatePassPage> {
   bool _isLoading = false;
 
   String? _selectedAdvisor;
+  String? _selectedFaculty;
+  bool _includePrincipal = false;
+
   final _advisors = Faculties().advisors;
+  final _allFaculty = Faculties().allFaculty;
 
   @override
   void initState() {
@@ -34,6 +42,7 @@ class _GatePassPageState extends State<GatePassPage> {
 
   @override
   void dispose() {
+    _studentNameController.dispose();
     _reasonController.dispose();
     _dateController.dispose();
     _timeFromController.dispose();
@@ -46,6 +55,35 @@ class _GatePassPageState extends State<GatePassPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gate Pass Request'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: Card(
+              child: InkWell(
+                onTap: () => _showMyPasses(context),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.receipt_long),
+                      const SizedBox(width: 8),
+                      Text(
+                        'View My Passes',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -110,20 +148,28 @@ class _GatePassPageState extends State<GatePassPage> {
                           Row(
                             children: [
                               Expanded(
-                                child: _buildTextField(
-                                  label: 'From Time',
+                                child: TextField(
                                   controller: _timeFromController,
-                                  prefixIcon: Icons.access_time,
+                                  decoration: const InputDecoration(
+                                    labelText: 'From Time',
+                                    prefixIcon: Icon(Icons.access_time),
+                                    border: OutlineInputBorder(),
+                                  ),
                                   readOnly: true,
+                                  onTap: () => _selectTime(context, true),
                                 ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: _buildTextField(
-                                  label: 'To Time',
+                                child: TextField(
                                   controller: _timeToController,
-                                  prefixIcon: Icons.access_time,
+                                  decoration: const InputDecoration(
+                                    labelText: 'To Time',
+                                    prefixIcon: Icon(Icons.access_time),
+                                    border: OutlineInputBorder(),
+                                  ),
                                   readOnly: true,
+                                  onTap: () => _selectTime(context, false),
                                 ),
                               ),
                             ],
@@ -263,11 +309,34 @@ class _GatePassPageState extends State<GatePassPage> {
     );
   }
 
+  String formatDateForStorage(String dateStr) {
+    // First try to parse as dd/MM/yyyy
+    try {
+      final dateParts = dateStr.split('/');
+      if (dateParts.length == 3) {
+        return '${dateParts[2]}-${dateParts[1]}-${dateParts[0]}';
+      }
+    } catch (_) {
+      // If splitting fails, continue to next attempt
+    }
+
+    // Then try to parse as existing yyyy-MM-dd
+    try {
+      DateTime.parse(
+          dateStr); // If this succeeds, it's already in correct format
+      return dateStr;
+    } catch (_) {
+      // If both attempts fail, return current date in correct format
+      return DateTime.now().toIso8601String().split('T')[0];
+    }
+  }
+
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedBranch == null ||
           _selectedClass == null ||
-          _selectedBatch == null) {
+          _selectedBatch == null ||
+          _selectedAdvisor == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please fill all required fields'),
@@ -280,8 +349,74 @@ class _GatePassPageState extends State<GatePassPage> {
       setState(() => _isLoading = true);
 
       try {
-        // TODO: Implement form submission
-        await Future.delayed(const Duration(seconds: 2));
+        final session = await account.get();
+        if (session == null) {
+          throw Exception('Session not found');
+        }
+
+        final formattedDate = formatDateForStorage(_dateController.text);
+
+        final faculties = Faculties();
+        final Set<String> approvalsRequired = {};
+
+        // Add advisor email
+        final advisorEmail = faculties.allFacultyEmails[_selectedAdvisor];
+        if (advisorEmail == null) {
+          throw Exception('Advisor email not found');
+        }
+        approvalsRequired.add(advisorEmail);
+
+        // Add selected faculty email if any
+        if (_selectedFaculty != null) {
+          final facultyEmail = faculties.allFacultyEmails[_selectedFaculty];
+          if (facultyEmail != null) {
+            approvalsRequired.add(facultyEmail);
+          }
+        }
+
+        // Add HOD email
+        final hodName = faculties.hods[_selectedBranch];
+        if (hodName == null) {
+          throw Exception('HOD not found for branch');
+        }
+        final hodEmail = faculties.allFacultyEmails[hodName];
+        if (hodEmail == null) {
+          throw Exception('HOD email not found');
+        }
+        approvalsRequired.add(hodEmail);
+
+        // Add principal email if selected
+        if (_includePrincipal) {
+          final principalEmail =
+              faculties.allFacultyEmails[faculties.principal];
+          if (principalEmail != null) {
+            approvalsRequired.add(principalEmail);
+          }
+        }
+
+        // Create gate pass request with unique approvals
+        final passData = {
+          'email': session.email,
+          'name': session.name,
+          'rollNo': _rollNo,
+          'branch': _selectedBranch,
+          'class': _selectedClass,
+          'batch': _selectedBatch,
+          'reason': _reasonController.text,
+          'date': formattedDate,
+          'timeFrom': _timeFromController.text,
+          'timeTo': _timeToController.text,
+          'advisor': _selectedAdvisor,
+          'faculty': _selectedFaculty,
+          'includePrincipal': _includePrincipal,
+          'approvalsRequired': approvalsRequired.toList(),
+          'approvedBy': [],
+          'rejectedBy': [],
+          'status': 'pending',
+          'requestDate': DateTime.now().toIso8601String(),
+        };
+
+        await gate_pass_db.createGatePass(passData);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -296,7 +431,7 @@ class _GatePassPageState extends State<GatePassPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error submitting request: $e'),
+              content: Text('Error: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -307,6 +442,32 @@ class _GatePassPageState extends State<GatePassPage> {
         }
       }
     }
+  }
+
+  Future<void> _selectTime(BuildContext context, bool isFromTime) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (picked != null && mounted) {
+      setState(() {
+        if (isFromTime) {
+          _timeFromController.text = picked.format(context);
+        } else {
+          _timeToController.text = picked.format(context);
+        }
+      });
+    }
+  }
+
+  Future<void> _showMyPasses(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => const MyPassesSheet(),
+      isScrollControlled: true,
+      useSafeArea: true,
+    );
   }
 }
 

@@ -1,6 +1,7 @@
+import 'package:csms/presentation/screens/admins/slips/gate_pass_admin.dart';
+import 'package:csms/presentation/screens/admins/slips/slips_dashboard.dart';
 import 'package:csms/presentation/screens/students/3d_printing.dart';
 import 'package:csms/presentation/screens/students/add_balance.dart';
-import 'package:csms/presentation/screens/admins/admin.dart';
 import 'package:csms/presentation/screens/students/dashboard.dart';
 import 'package:csms/presentation/screens/common/error.dart';
 import 'package:csms/presentation/screens/common/landing.dart';
@@ -90,7 +91,7 @@ class AppRouter {
       '/admin',
       handler: Handler(
           handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
-        return const AdminScreen();
+        return const SlipsDashboardScreen();
       }),
       transitionType: TransitionType.fadeIn,
     );
@@ -238,6 +239,16 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const LostIdPage();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/admin/gate-passes',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const GatePassAdmin();
         },
       ),
       transitionType: TransitionType.fadeIn,
