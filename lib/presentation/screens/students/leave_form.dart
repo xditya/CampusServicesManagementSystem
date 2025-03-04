@@ -147,6 +147,9 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
                         setState(() => _selectedBatch = value),
                     onRollNumberChanged: (value) =>
                         setState(() => _rollNo = value),
+                    onAdvisorChanged: (_) {},
+                    onFacultyChanged: (_) {},
+                    onPrincipalChanged: (_) {},
                   ),
                   const SizedBox(height: 16),
                   Card(

@@ -1,5 +1,6 @@
 import 'package:csms/helper/config.dart';
 import 'package:csms/helper/database/gate_pass_db.dart' as gate_pass_db;
+import 'package:csms/helper/database/pink_slip_db.dart' as pink_slip_db;
 import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +14,7 @@ class SlipsDashboardScreen extends StatefulWidget {
 class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
   bool _isLoading = true;
   int _pendingGatePasses = 0;
+  int _pendingPinkSlips = 0;
 
   @override
   void initState() {
@@ -23,20 +25,29 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
   Future<void> _loadCounts() async {
     try {
       setState(() => _isLoading = true);
-
       final session = await account.get();
-      final passes = await gate_pass_db.getPassesForApproval(session.email);
 
-      // Only count passes that haven't been approved/rejected by current user
-      final pendingCount = passes
+      // Get gate pass counts
+      final passes = await gate_pass_db.getPassesForApproval(session.email);
+      final pendingPassCount = passes
           .where((pass) =>
               pass['status'] == 'pending' &&
               !(pass['approvedBy'] as List).contains(session.email) &&
               !(pass['rejectedBy'] as List).contains(session.email))
           .length;
 
+      // Get pink slip counts
+      final slips = await pink_slip_db.getSlipsForApproval(session.email);
+      final pendingSlipCount = slips
+          .where((slip) =>
+              slip['status'] == 'pending' &&
+              !(slip['approvedBy'] as List).contains(session.email) &&
+              !(slip['rejectedBy'] as List).contains(session.email))
+          .length;
+
       setState(() {
-        _pendingGatePasses = pendingCount;
+        _pendingGatePasses = pendingPassCount;
+        _pendingPinkSlips = pendingSlipCount;
         _isLoading = false;
       });
     } catch (e) {
@@ -116,7 +127,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
             'description':
                 'View and manage pink slip requests. Approve or reject requests, add comments, and track request history.',
             'color': Colors.pink,
-            'count': 5, // TODO: Get actual count from database
+            'count': _pendingPinkSlips,
           },
           {
             'title': 'Gate Passes',

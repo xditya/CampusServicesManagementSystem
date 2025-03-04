@@ -102,6 +102,26 @@ class WebSocketService {
               'Notifications about gate pass status changes',
             );
           }
+
+          // Handle pink slip notifications
+          if (data['type'] == 'pink_slip_update' &&
+              session.email == data['userEmail']) {
+            final status = data['status'];
+            final slipData = data['data'];
+
+            String title = 'Pink Slip ${status.toUpperCase()}';
+            String message = status == 'approved'
+                ? 'Your pink slip for ${slipData['date']} has been approved'
+                : 'Your pink slip for ${slipData['date']} has been rejected by ${slipData['updatedBy']}';
+
+            await _showNotification(
+              title,
+              message,
+              'pink_slip_channel',
+              'Pink Slip Status',
+              'Notifications about pink slip status changes',
+            );
+          }
         } catch (e) {
           debugPrint('Error handling WebSocket message: $e');
           debugPrint('Raw message: $message');

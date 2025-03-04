@@ -3,6 +3,7 @@ import 'package:csms/helper/data/faculties.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:csms/presentation/widgets/student_info_card.dart';
+import 'package:csms/helper/database/pink_slip_db.dart' as pink_slip_db;
 
 class PinkSlipsPage extends StatefulWidget {
   const PinkSlipsPage({super.key});
@@ -19,6 +20,9 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
   final _branchController = TextEditingController();
   final _requestController = TextEditingController();
   final _dateController = TextEditingController();
+  final _reasonController = TextEditingController();
+  final _timeFromController = TextEditingController();
+  final _timeToController = TextEditingController();
 
   String? _selectedBranch;
   String? _selectedClass;
@@ -33,10 +37,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
   String? _selectedFaculty;
   bool _includePrincipal = false;
 
-  final _advisors = Faculties().advisors;
-  final _allFaculty = Faculties().allFaculty;
-  final _hods = Faculties().hods;
-  final _principal = Faculties().principal;
+  final _faculties = Faculties();
 
   @override
   void initState() {
@@ -63,6 +64,9 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
     _requestController.dispose();
     _dateController.dispose();
     _branchController.dispose();
+    _reasonController.dispose();
+    _timeFromController.dispose();
+    _timeToController.dispose();
     super.dispose();
   }
 
@@ -87,7 +91,8 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
   }
 
   void _updateBranchController() {
-    String branchName = _selectedBranch != null ? _hods[_selectedBranch]! : '';
+    String branchName =
+        _selectedBranch != null ? _faculties.hods[_selectedBranch]! : '';
     _branchController.text = branchName;
     // Place cursor at the end
     _branchController.selection = TextSelection.fromPosition(
@@ -159,11 +164,58 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
     }
   }
 
+  Future<void> _selectTime(
+      BuildContext context, TextEditingController controller) async {
+    final TimeOfDay initialTime = controller.text.isNotEmpty
+        ? TimeOfDay.fromDateTime(DateFormat.jm().parse(controller.text))
+        : TimeOfDay.now();
+
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (picked != null) {
+      setState(() {
+        controller.text = picked.format(context);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pink Slip Request'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: Card(
+              child: InkWell(
+                onTap: () => _showMySlips(context),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.receipt_long),
+                      const SizedBox(width: 8),
+                      Text(
+                        'View My Slips',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -178,15 +230,30 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                     onBranchChanged: (value) {
                       setState(() {
                         _selectedBranch = value;
-                        _updateBranchController();
+                        _selectedAdvisor = null;
+                        _selectedFaculty = null;
                       });
                     },
-                    onClassChanged: (value) =>
-                        setState(() => _selectedClass = value),
-                    onBatchChanged: (value) =>
-                        setState(() => _selectedBatch = value),
+                    onClassChanged: (value) {
+                      setState(() {
+                        _selectedClass = value;
+                        _selectedAdvisor = null;
+                      });
+                    },
+                    onBatchChanged: (value) {
+                      setState(() {
+                        _selectedBatch = value;
+                        _selectedAdvisor = null;
+                      });
+                    },
                     onRollNumberChanged: (value) =>
                         setState(() => _rollNoController.text = value),
+                    onAdvisorChanged: (value) =>
+                        setState(() => _selectedAdvisor = value),
+                    onFacultyChanged: (value) =>
+                        setState(() => _selectedFaculty = value),
+                    onPrincipalChanged: (value) =>
+                        setState(() => _includePrincipal = value),
                   ),
                   const SizedBox(height: 16),
                   Card(
@@ -204,28 +271,10 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                           ),
                           const SizedBox(height: 16),
                           _buildTextField(
-                            label: 'Request Subject',
-                            controller: _requestSubjectController,
-                            prefixIcon: Icons.subject,
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _requestController,
-                            maxLines: 5,
-                            decoration: InputDecoration(
-                              labelText: 'Request',
-                              hintText: 'Enter your request details...',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              prefixIcon: const Icon(Icons.description),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your request';
-                              }
-                              return null;
-                            },
+                            label: 'Reason',
+                            controller: _reasonController,
+                            prefixIcon: Icons.description,
+                            maxLines: 3,
                           ),
                           const SizedBox(height: 16),
                           _buildTextField(
@@ -235,82 +284,56 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                             readOnly: true,
                             onTap: () => _selectDate(context),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Approvals Required',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
                           const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Advisor *',
-                            value: _selectedAdvisor,
-                            items: _selectedBranch != null &&
-                                    _selectedBatch != null &&
-                                    _selectedClass != null
-                                ? _advisors[_selectedBranch]![_selectedBatch!
-                                    .toInt()]![_selectedClass!.toInt()]!
-                                : [],
-                            prefixIcon: Icons.person,
-                            onChanged: (value) {
-                              setState(() => _selectedAdvisor = value);
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildSearchableDropdown(
-                            label: 'Faculty (Optional)',
-                            value: _selectedFaculty,
-                            items: _allFaculty,
-                            onChanged: (value) {
-                              setState(() => _selectedFaculty = value);
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _branchController,
-                            // initialValue: _selectedBranch != null
-                            //     ? _hods[_selectedBranch]
-                            //     : '',
-                            readOnly: true,
-                            decoration: InputDecoration(
-                              labelText: 'HOD *',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildTextField(
+                                  label: 'From Time',
+                                  controller: _timeFromController,
+                                  prefixIcon: Icons.access_time,
+                                  readOnly: true,
+                                  onTap: () =>
+                                      _selectTime(context, _timeFromController),
+                                ),
                               ),
-                              prefixIcon: const Icon(Icons.person_2),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          CheckboxListTile(
-                            title: const Text('Include Principal Approval'),
-                            subtitle: Text(_principal),
-                            value: _includePrincipal,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            contentPadding: EdgeInsets.zero,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _includePrincipal = value ?? false;
-                              });
-                            },
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildTextField(
+                                  label: 'To Time',
+                                  controller: _timeToController,
+                                  prefixIcon: Icons.access_time,
+                                  readOnly: true,
+                                  onTap: () =>
+                                      _selectTime(context, _timeToController),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _buildButtons(),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _isLoading ? null : _submitForm,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('Submit'),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -333,6 +356,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
     required IconData prefixIcon,
     bool readOnly = false,
     VoidCallback? onTap,
+    int? maxLines,
   }) {
     final bool isRollNumberEnabled = label == 'Roll No.'
         ? (_selectedBatch != null && _selectedBranch != null)
@@ -381,6 +405,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
         }
         return null;
       },
+      maxLines: maxLines,
     );
   }
 
@@ -468,74 +493,259 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
     );
   }
 
-  Widget _buildButtons() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _submitForm,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).primaryColor,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-                'Submit Request',
-                style: TextStyle(fontSize: 16),
-              ),
+  Future<void> _showMySlips(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, controller) => MySlipsSheet(scrollController: controller),
       ),
     );
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_selectedBranch == null ||
-          _selectedClass == null ||
-          _selectedBatch == null) {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final session = await account.get();
+      final faculties = Faculties();
+      final slipData = {
+        'email': session.email,
+        'name': session.name,
+        'rollNo': _rollNoController.text,
+        'branch': _selectedBranch,
+        'class': _selectedClass,
+        'batch': _selectedBatch,
+        'reason': _reasonController.text,
+        'date': _dateController.text,
+        'timeFrom': _timeFromController.text,
+        'timeTo': _timeToController.text,
+        'advisor': _selectedAdvisor,
+        'faculty': _selectedFaculty,
+        'includePrincipal': _includePrincipal,
+        'approvalsRequired': [
+          faculties.allFacultyEmails[_selectedAdvisor]!,
+          if (_selectedFaculty != null)
+            faculties.allFacultyEmails[_selectedFaculty]!,
+          if (_includePrincipal)
+            faculties.allFacultyEmails[faculties.principal]!,
+        ].toSet().toList(),
+        'approvedBy': [],
+        'rejectedBy': [],
+        'status': 'pending',
+        'requestDate': DateTime.now().toIso8601String(),
+      };
+
+      await pink_slip_db.createPinkSlip(slipData);
+
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please fill all required fields'),
+          SnackBar(
+            content: const Text('Pink slip submitted successfully'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'View Slips',
+              textColor: Colors.white,
+              onPressed: () => _showMySlips(context),
+            ),
+          ),
+        );
+        _formKey.currentState!.reset();
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
-        return;
       }
-
-      setState(() => _isLoading = true);
-
-      try {
-        // TODO: Implement form submission
-
-        await Future.delayed(const Duration(seconds: 2));
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Pink slip request submitted successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pop(context);
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error submitting request: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+}
+
+class MySlipsSheet extends StatefulWidget {
+  final ScrollController scrollController;
+
+  const MySlipsSheet({super.key, required this.scrollController});
+
+  @override
+  State<MySlipsSheet> createState() => _MySlipsSheetState();
+}
+
+class _MySlipsSheetState extends State<MySlipsSheet> {
+  List<Map<String, dynamic>> _slips = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSlips();
+  }
+
+  Future<void> _loadSlips() async {
+    try {
+      final session = await account.get();
+      final slips = await pink_slip_db.getSlipsByEmail(session.email);
+      slips.sort((a, b) => DateTime.parse(b['requestDate'])
+          .compareTo(DateTime.parse(a['requestDate'])));
+      setState(() {
+        _slips = slips;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.8,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) => Column(
+        children: [
+          AppBar(
+            title: const Text('My Pink Slips'),
+            centerTitle: true,
+            automaticallyImplyLeading: false,
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _loadSlips,
+                    child: ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(8),
+                      itemCount: _slips.length,
+                      itemBuilder: (context, index) {
+                        final slip = _slips[index];
+                        final status = slip['status'] as String;
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: status == 'approved'
+                                  ? Colors.green
+                                  : status == 'rejected'
+                                      ? Colors.red
+                                      : Colors.grey.shade300,
+                              width: 2,
+                            ),
+                          ),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        slip['date'],
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: status == 'approved'
+                                            ? Colors.green.withOpacity(0.1)
+                                            : status == 'rejected'
+                                                ? Colors.red.withOpacity(0.1)
+                                                : Colors.orange
+                                                    .withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        status.toUpperCase(),
+                                        style: TextStyle(
+                                          color: status == 'approved'
+                                              ? Colors.green
+                                              : status == 'rejected'
+                                                  ? Colors.red
+                                                  : Colors.orange,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  slip['reason'],
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${slip['timeFrom']} - ${slip['timeTo']}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                if (status == 'rejected' &&
+                                    slip['rejectedBy'] != null &&
+                                    (slip['rejectedBy'] as List)
+                                        .isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Rejected by: ${(slip['rejectedBy'] as List).first}',
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                                if (status == 'pending' &&
+                                    slip['approvalsRequired'] != null) ...[
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Waiting for approval from: ${(slip['approvalsRequired'] as List).join(", ")}',
+                                    style: TextStyle(
+                                      color: Colors.orange.shade800,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

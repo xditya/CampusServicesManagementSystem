@@ -90,6 +90,9 @@ class _LostIdPageState extends State<LostIdPage> {
                           setState(() => _selectedBatch = value),
                       onRollNumberChanged: (value) =>
                           setState(() => _rollNo = value),
+                      onAdvisorChanged: (_) {},
+                      onFacultyChanged: (_) {},
+                      onPrincipalChanged: (_) {},
                     ),
                     const SizedBox(height: 24),
                     Card(

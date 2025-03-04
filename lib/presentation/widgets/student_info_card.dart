@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:csms/helper/config.dart';
+import 'package:csms/helper/data/faculties.dart';
 
 class StudentInfoCard extends StatefulWidget {
   final void Function(String?) onBranchChanged;
   final void Function(String?) onClassChanged;
   final void Function(String?) onBatchChanged;
   final void Function(String) onRollNumberChanged;
+  final void Function(String?) onAdvisorChanged;
+  final void Function(String?) onFacultyChanged;
+  final void Function(bool) onPrincipalChanged;
 
   const StudentInfoCard({
     super.key,
@@ -13,6 +17,9 @@ class StudentInfoCard extends StatefulWidget {
     required this.onClassChanged,
     required this.onBatchChanged,
     required this.onRollNumberChanged,
+    required this.onAdvisorChanged,
+    required this.onFacultyChanged,
+    required this.onPrincipalChanged,
   });
 
   @override
@@ -27,10 +34,15 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
   String? _selectedBranch;
   String? _selectedClass;
   String? _selectedBatch;
+  String? _selectedAdvisor;
+  String? _selectedFaculty;
+  bool _includePrincipal = false;
 
   final List<String> _branches = ['EC', 'CS', 'EEE', 'ME', 'CE', 'EL', 'ADMIN'];
   final List<String> _classes = ['1', '2'];
   late List<String> _batches;
+
+  final _faculties = Faculties();
 
   @override
   void initState() {
@@ -152,6 +164,37 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
               prefixIcon: Icons.numbers,
               readOnly: false,
               onChanged: (value) => widget.onRollNumberChanged(value),
+            ),
+            const SizedBox(height: 16),
+            _buildDropdown(
+              label: 'Advisor',
+              value: _selectedAdvisor,
+              items: _faculties.advisorsList,
+              prefixIcon: Icons.person_outline,
+              onChanged: (value) {
+                setState(() => _selectedAdvisor = value);
+                widget.onAdvisorChanged(value);
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildDropdown(
+              label: 'Faculty',
+              value: _selectedFaculty,
+              items: _faculties.allFacultyList,
+              prefixIcon: Icons.school,
+              onChanged: (value) {
+                setState(() => _selectedFaculty = value);
+                widget.onFacultyChanged(value);
+              },
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Include Principal'),
+              value: _includePrincipal,
+              onChanged: (value) {
+                setState(() => _includePrincipal = value);
+                widget.onPrincipalChanged(value);
+              },
             ),
           ],
         ),

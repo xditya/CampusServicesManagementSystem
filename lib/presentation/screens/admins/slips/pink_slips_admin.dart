@@ -1,18 +1,17 @@
-import 'package:csms/helper/config.dart';
-import 'package:csms/helper/database/gate_pass_db.dart' as gate_pass_db;
-import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:csms/helper/config.dart';
+import 'package:csms/helper/database/pink_slip_db.dart' as pink_slip_db;
+import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/pass_details_dialog.dart';
 
-class GatePassAdmin extends StatefulWidget {
-  const GatePassAdmin({super.key});
+class PinkSlipsAdmin extends StatefulWidget {
+  const PinkSlipsAdmin({super.key});
 
   @override
-  State<GatePassAdmin> createState() => _GatePassAdminState();
+  State<PinkSlipsAdmin> createState() => _PinkSlipsAdminState();
 }
 
-class _GatePassAdminState extends State<GatePassAdmin> {
+class _PinkSlipsAdminState extends State<PinkSlipsAdmin> {
   List<Map<String, dynamic>> _passes = [];
   bool _isLoading = true;
   String? _currentUserEmail;
@@ -20,64 +19,21 @@ class _GatePassAdminState extends State<GatePassAdmin> {
   @override
   void initState() {
     super.initState();
-    _loadPasses();
+    _loadSlips();
   }
 
-  Future<void> _loadPasses() async {
+  Future<void> _loadSlips() async {
     try {
       setState(() => _isLoading = true);
-
-      // Get current faculty email
       final session = await account.get();
       _currentUserEmail = session.email;
+      final slips = await pink_slip_db.getSlipsForApproval(session.email);
 
-      // Get all passes that need this faculty's approval
-      final passes =
-          await gate_pass_db.getPassesForApproval(_currentUserEmail!);
-
-      setState(() {
-        _passes = passes;
-        _isLoading = false;
-      });
+      setState(() => _passes = slips);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading passes: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _updatePassStatus(String passId, String status) async {
-    setState(() => _isLoading = true);
-    try {
-      final session = await account.get();
-      if (session == null) throw Exception('No session found');
-
-      // Use the new updateGatePass function instead of updatePassStatus
-      await gate_pass_db.updateGatePass(passId, session.email, status);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gate pass ${status.toLowerCase()} successfully'),
-            backgroundColor: status == 'approved' ? Colors.green : Colors.red,
-          ),
-        );
-        // Refresh the list after update
-        _loadPasses();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -87,16 +43,41 @@ class _GatePassAdminState extends State<GatePassAdmin> {
     }
   }
 
+  Future<void> _updateSlipStatus(String id, String status) async {
+    try {
+      await pink_slip_db.updatePinkSlip(
+        id,
+        _currentUserEmail!,
+        status,
+      );
+      await _loadSlips();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Pink slip $status successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Gate Passes'),
+          title: const Text('Pink Slips'),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: _loadPasses,
+              onPressed: _loadSlips,
             ),
           ],
         ),
@@ -104,59 +85,57 @@ class _GatePassAdminState extends State<GatePassAdmin> {
       );
     }
 
-    final pendingPasses = _passes.where((pass) =>
-        pass['status'] == 'pending' &&
-        pass['approvalsRequired'].contains(_currentUserEmail));
+    final pendingSlips = _passes.where((slip) =>
+        slip['status'] == 'pending' &&
+        slip['approvalsRequired'].contains(_currentUserEmail));
 
-    // Sort approved and rejected passes by date in descending order
-    final approvedPasses = _passes
-        .where((pass) => pass['approvedBy'].contains(_currentUserEmail))
+    // Sort approved and rejected slips by date in descending order
+    final approvedSlips = _passes
+        .where((slip) => slip['approvedBy'].contains(_currentUserEmail))
         .toList()
       ..sort((a, b) => b['date'].compareTo(a['date']));
 
-    final rejectedPasses = _passes
-        .where((pass) => pass['rejectedBy'].contains(_currentUserEmail))
+    final rejectedSlips = _passes
+        .where((slip) => slip['rejectedBy'].contains(_currentUserEmail))
         .toList()
       ..sort((a, b) => b['date'].compareTo(a['date']));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gate Passes'),
+        title: const Text('Pink Slips'),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadPasses,
+            onPressed: _loadSlips,
             tooltip: 'Refresh',
           ),
         ],
       ),
       bottomNavigationBar: const BottomNavBarAdmin(),
       body: RefreshIndicator(
-        onRefresh: _loadPasses,
+        onRefresh: _loadSlips,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            if (pendingPasses.isNotEmpty) ...[
+            if (pendingSlips.isNotEmpty) ...[
               _buildPassSection(
-                  'Pending Approvals', pendingPasses.toList(), Colors.orange),
+                  'Pending Approvals', pendingSlips.toList(), Colors.orange),
               const SizedBox(height: 24),
             ],
-            if (approvedPasses.isNotEmpty) ...[
-              _buildPassSection(
-                  'Approved by You', approvedPasses.toList(), Colors.green),
+            if (approvedSlips.isNotEmpty) ...[
+              _buildPassSection('Approved by You', approvedSlips, Colors.green),
               const SizedBox(height: 24),
             ],
-            if (rejectedPasses.isNotEmpty)
-              _buildPassSection(
-                  'Rejected by You', rejectedPasses.toList(), Colors.red),
-            if (pendingPasses.isEmpty &&
-                approvedPasses.isEmpty &&
-                rejectedPasses.isEmpty)
+            if (rejectedSlips.isNotEmpty)
+              _buildPassSection('Rejected by You', rejectedSlips, Colors.red),
+            if (pendingSlips.isEmpty &&
+                approvedSlips.isEmpty &&
+                rejectedSlips.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16),
-                  child: Text('No gate passes to show'),
+                  child: Text('No pink slips to show'),
                 ),
               ),
           ],
@@ -192,12 +171,12 @@ class _GatePassAdminState extends State<GatePassAdmin> {
                         children: [
                           TextButton(
                             onPressed: () =>
-                                _updatePassStatus(pass['_id'].$oid, 'rejected'),
+                                _updateSlipStatus(pass['_id'].$oid, 'rejected'),
                             child: const Text('Reject'),
                           ),
                           TextButton(
                             onPressed: () =>
-                                _updatePassStatus(pass['_id'].$oid, 'approved'),
+                                _updateSlipStatus(pass['_id'].$oid, 'approved'),
                             child: const Text('Approve'),
                           ),
                         ],
@@ -213,25 +192,6 @@ class _GatePassAdminState extends State<GatePassAdmin> {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(child: Text(value)),
-        ],
-      ),
     );
   }
 }

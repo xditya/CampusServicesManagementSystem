@@ -1,4 +1,5 @@
 import 'package:csms/presentation/screens/admins/slips/gate_pass_admin.dart';
+import 'package:csms/presentation/screens/admins/slips/pink_slips_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/slips_dashboard.dart';
 import 'package:csms/presentation/screens/students/3d_printing.dart';
 import 'package:csms/presentation/screens/students/add_balance.dart';
@@ -249,6 +250,16 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const GatePassAdmin();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/admin/pink-slips',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const PinkSlipsAdmin();
         },
       ),
       transitionType: TransitionType.fadeIn,

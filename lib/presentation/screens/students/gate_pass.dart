@@ -103,6 +103,12 @@ class _GatePassPageState extends State<GatePassPage> {
                         setState(() => _selectedBatch = value),
                     onRollNumberChanged: (value) =>
                         setState(() => _rollNo = value),
+                    onAdvisorChanged: (value) =>
+                        setState(() => _selectedAdvisor = value),
+                    onFacultyChanged: (value) =>
+                        setState(() => _selectedFaculty = value),
+                    onPrincipalChanged: (value) =>
+                        setState(() => _includePrincipal = value),
                   ),
                   const SizedBox(height: 16),
                   Card(

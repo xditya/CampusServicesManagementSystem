@@ -223,4 +223,13 @@ class Faculties {
   };
 
   final String principal = 'Dr. S. Viswanatha Rao';
+
+  List<String> get advisorsList => advisors.values
+      .expand((branch) => branch.values)
+      .expand((batch) => batch.values)
+      .expand((list) => list)
+      .toSet()
+      .toList();
+
+  List<String> get allFacultyList => allFaculty.toList();
 }

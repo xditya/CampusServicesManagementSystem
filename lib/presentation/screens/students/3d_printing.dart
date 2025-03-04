@@ -90,6 +90,9 @@ class _ThreeDPrintingPageState extends State<ThreeDPrintingPage> {
                     onRollNumberChanged: (value) {
                       setState(() => _rollNo = value);
                     },
+                    onAdvisorChanged: (_) {},
+                    onFacultyChanged: (_) {},
+                    onPrincipalChanged: (_) {},
                   ),
                   const SizedBox(height: 16),
                   Card(

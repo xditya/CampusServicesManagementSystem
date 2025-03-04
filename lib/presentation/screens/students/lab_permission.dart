@@ -69,19 +69,16 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               StudentInfoCard(
-                onBranchChanged: (value) {
-                  setState(() => _selectedBranch = value);
-                  _updateLabsList();
-                },
-                onClassChanged: (value) {
-                  setState(() => _selectedClass = value);
-                },
-                onBatchChanged: (value) {
-                  setState(() => _selectedBatch = value);
-                },
-                onRollNumberChanged: (value) {
-                  setState(() => _rollNo = value);
-                },
+                onBranchChanged: (value) =>
+                    setState(() => _selectedBranch = value),
+                onClassChanged: (value) =>
+                    setState(() => _selectedClass = value),
+                onBatchChanged: (value) =>
+                    setState(() => _selectedBatch = value),
+                onRollNumberChanged: (value) => setState(() => _rollNo = value),
+                onAdvisorChanged: (_) {},
+                onFacultyChanged: (_) {},
+                onPrincipalChanged: (_) {},
               ),
               const SizedBox(height: 16),
               // Lab Request Details Card

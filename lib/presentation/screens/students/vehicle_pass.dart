@@ -100,6 +100,9 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
                     onRollNumberChanged: (value) {
                       setState(() => _rollNo = value);
                     },
+                    onAdvisorChanged: (_) {},
+                    onFacultyChanged: (_) {},
+                    onPrincipalChanged: (_) {},
                   ),
                   const SizedBox(height: 16),
                   Card(
