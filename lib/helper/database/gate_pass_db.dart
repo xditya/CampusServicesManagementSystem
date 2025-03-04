@@ -1,5 +1,8 @@
 import 'package:csms/helper/database/db_service.dart';
+import 'package:csms/models/gate_pass.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:csms/services/websocket_service.dart';
+import 'dart:convert';
 
 Future<void> createGatePass(Map<String, dynamic> passData) async {
   final dbService = DBService();
@@ -95,27 +98,24 @@ Future<void> updateGatePass(String id, String email, String status) async {
       throw Exception('Gate pass not found');
     }
 
-    final data = doc as Map<String, dynamic>;
+    final gatePass = GatePass.fromJson(doc);
     final List<String> approvalsRequired =
-        List<String>.from(data['approvalsRequired'] ?? []);
-    final List<String> approvedBy = List<String>.from(data['approvedBy'] ?? []);
-    final List<String> rejectedBy = List<String>.from(data['rejectedBy'] ?? []);
+        List<String>.from(doc['approvalsRequired'] ?? []);
+    final List<String> approvedBy = List<String>.from(doc['approvedBy'] ?? []);
+    final List<String> rejectedBy = List<String>.from(doc['rejectedBy'] ?? []);
 
     if (status == 'approved') {
       if (!approvedBy.contains(email)) {
         approvedBy.add(email);
       }
-      // Remove from approvalsRequired when approved
       approvalsRequired.remove(email);
     } else if (status == 'rejected') {
       if (!rejectedBy.contains(email)) {
         rejectedBy.add(email);
       }
-      // When rejected, clear all pending approvals
       approvalsRequired.clear();
     }
 
-    // Update the overall status
     String overallStatus;
     if (rejectedBy.isNotEmpty) {
       overallStatus = 'rejected';
@@ -133,6 +133,26 @@ Future<void> updateGatePass(String id, String email, String status) async {
           .set('rejectedBy', rejectedBy)
           .set('status', overallStatus),
     );
+
+    // Send WebSocket notification if the pass is fully approved or rejected
+    if (overallStatus == 'approved' || overallStatus == 'rejected') {
+      WebSocketService().sendMessage(
+        json.encode({
+          'type': 'gate_pass_update',
+          'userEmail': gatePass.email,
+          'status': overallStatus,
+          'data': {
+            'date': gatePass.date,
+            'timeFrom': gatePass.timeFrom,
+            'timeTo': gatePass.timeTo,
+            'reason': gatePass.reason,
+            'approvedBy': approvedBy,
+            'rejectedBy': rejectedBy,
+            'updatedBy': email,
+          },
+        }),
+      );
+    }
   } catch (e) {
     throw Exception('Failed to update gate pass: $e');
   }

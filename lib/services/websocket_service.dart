@@ -67,37 +67,40 @@ class WebSocketService {
           if (jsonStr.startsWith('Broadcast: ')) {
             jsonStr = jsonStr.substring('Broadcast: '.length);
           }
-          // debugPrint('Received WebSocket message: $jsonStr');
 
           final data = json.decode(jsonStr);
-          if (data['type'] == 'print_completed') {
-            try {
-              final session = await account.get();
-              if (session.email == data['userEmail']) {
-                const androidDetails = AndroidNotificationDetails(
-                  'print_status_channel',
-                  'Print Status',
-                  channelDescription:
-                      'Notifications about print status changes',
-                  importance: Importance.high,
-                  priority: Priority.high,
-                );
+          final session = await account.get();
 
-                const notificationDetails = NotificationDetails(
-                  android: androidDetails,
-                  iOS: DarwinNotificationDetails(),
-                );
+          // Handle print notifications
+          if (data['type'] == 'print_completed' &&
+              session.email == data['userEmail']) {
+            await _showNotification(
+              'Print Request Completed',
+              data['message'] ?? 'Your print request has been completed',
+              'print_status_channel',
+              'Print Status',
+              'Notifications about print status changes',
+            );
+          }
 
-                await _localNotifications.show(
-                  0,
-                  'Print Request Completed',
-                  data['message'] ?? 'Your print request has been completed',
-                  notificationDetails,
-                );
-              }
-            } catch (e) {
-              debugPrint('Error getting session or showing notification: $e');
-            }
+          // Handle gate pass notifications
+          if (data['type'] == 'gate_pass_update' &&
+              session.email == data['userEmail']) {
+            final status = data['status'];
+            final passData = data['data'];
+
+            String title = 'Gate Pass ${status.toUpperCase()}';
+            String message = status == 'approved'
+                ? 'Your gate pass for ${passData['date']} has been approved'
+                : 'Your gate pass for ${passData['date']} has been rejected by ${passData['updatedBy']}';
+
+            await _showNotification(
+              title,
+              message,
+              'gate_pass_channel',
+              'Gate Pass Status',
+              'Notifications about gate pass status changes',
+            );
           }
         } catch (e) {
           debugPrint('Error handling WebSocket message: $e');
@@ -115,6 +118,41 @@ class WebSocketService {
       },
       cancelOnError: false,
     );
+  }
+
+  // Helper method to show notifications
+  Future<void> _showNotification(
+    String title,
+    String body,
+    String channelId,
+    String channelName,
+    String channelDescription,
+  ) async {
+    try {
+      final androidDetails = AndroidNotificationDetails(
+        channelId,
+        channelName,
+        channelDescription: channelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+      );
+
+      const iOSDetails = DarwinNotificationDetails();
+
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iOSDetails,
+      );
+
+      await _localNotifications.show(
+        DateTime.now().millisecond, // Use timestamp for unique ID
+        title,
+        body,
+        notificationDetails,
+      );
+    } catch (e) {
+      debugPrint('Error showing notification: $e');
+    }
   }
 
   void _reconnect() {
