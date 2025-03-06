@@ -220,7 +220,7 @@ class WebSocketService {
     _isConnected = false;
     _reconnectAttempts++;
     debugPrint(
-        'Attempting to reconnect (${_reconnectAttempts}/$maxReconnectAttempts)...');
+        'Attempting to reconnect ($_reconnectAttempts/$maxReconnectAttempts)...');
 
     Future.delayed(Duration(seconds: _reconnectAttempts * 5), () {
       connect();

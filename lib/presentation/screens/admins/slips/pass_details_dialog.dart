@@ -16,22 +16,37 @@ void showPassDetails(BuildContext context, Map<String, dynamic> pass) {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            pass['name'],
+            pass['name'] ?? pass['studentName'] ?? 'Student',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 16),
-          _buildInfoRow('Roll No', pass['rollNo']),
-          _buildInfoRow(
-              'Branch & Class', '${pass['branch']} - ${pass['class']}'),
-          _buildInfoRow('Batch', pass['batch']),
-          _buildInfoRow('Date', pass['date']),
-          _buildInfoRow('Time', '${pass['timeFrom']} - ${pass['timeTo']}'),
-          _buildInfoRow('Reason', pass['reason']),
-          _buildInfoRow(
-            'Request Date',
-            DateFormat('dd/MM/yyyy HH:mm')
-                .format(DateTime.parse(pass['requestDate'])),
-          ),
+          if (pass["rollNo"] != null) _buildInfoRow('Roll No', pass['rollNo']),
+          if (pass['branch'] != null && pass['class'] != null)
+            _buildInfoRow(
+                'Branch & Class', '${pass['branch']} - ${pass['class']}'),
+          if (pass['batch'] != null) _buildInfoRow('Batch', pass['batch']),
+          if (pass['date'] != null) _buildInfoRow('Date', pass['date']),
+          if (pass['dateFrom'] != null && pass['dateTo'] != null)
+            _buildInfoRow(
+                'Date Range', '${pass['dateFrom']} to ${pass['dateTo']}'),
+          if (pass["lab"] != null) _buildInfoRow('Lab', pass['lab']),
+          if (pass["timeFrom"] != null && pass["timeTo"] != null)
+            _buildInfoRow('Time', '${pass['timeFrom']} - ${pass['timeTo']}'),
+          if (pass["reason"] != null) _buildInfoRow('Reason', pass['reason']),
+          if (pass["purpose"] != null)
+            _buildInfoRow('Purpose', pass['purpose']),
+          if (pass["requestDate"] != null)
+            _buildInfoRow(
+              'Request Date',
+              DateFormat('dd/MM/yyyy HH:mm')
+                  .format(DateTime.parse(pass['requestDate'])),
+            ),
+          if (pass['createdAt'] != null)
+            _buildInfoRow(
+              'Created At',
+              DateFormat('dd/MM/yyyy HH:mm')
+                  .format(DateTime.parse(pass['createdAt'])),
+            ),
           const Divider(height: 32),
           if ((pass['approvedBy'] as List).isNotEmpty) ...[
             const Text(

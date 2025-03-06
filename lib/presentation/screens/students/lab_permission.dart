@@ -4,7 +4,6 @@ import 'package:csms/helper/data/labs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:csms/presentation/widgets/student_info_card.dart';
-import 'package:csms/helper/database/db_service.dart';
 import 'package:csms/helper/database/lab_permission_db.dart'
     as lab_permission_db;
 

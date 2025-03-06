@@ -3,8 +3,6 @@ import 'package:csms/services/websocket_service.dart';
 import '../models/print_request.dart';
 import '../helper/database/db_service.dart';
 import 'package:mongo_dart/mongo_dart.dart';
-import '../services/notification_service.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
 
 class PrintService {

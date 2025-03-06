@@ -2,7 +2,6 @@
 
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 final APPWRITE_PROJECT_ID = dotenv.get('APPWRITE_PROJECT_ID');
 final APPWRITE_API_ENDPOINT = dotenv.get('APPWRITE_API_ENDPOINT');

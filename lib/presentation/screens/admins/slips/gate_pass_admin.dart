@@ -56,7 +56,6 @@ class _GatePassAdminState extends State<GatePassAdmin> {
     setState(() => _isLoading = true);
     try {
       final session = await account.get();
-      if (session == null) throw Exception('No session found');
 
       // Use the new updateGatePass function instead of updatePassStatus
       await gate_pass_db.updateGatePass(passId, session.email, status);

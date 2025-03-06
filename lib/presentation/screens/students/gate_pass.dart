@@ -325,9 +325,6 @@ class _GatePassPageState extends State<GatePassPage> {
 
       try {
         final session = await account.get();
-        if (session == null) {
-          throw Exception('Session not found');
-        }
 
         final formattedDate = formatDateForStorage(_dateController.text);
 

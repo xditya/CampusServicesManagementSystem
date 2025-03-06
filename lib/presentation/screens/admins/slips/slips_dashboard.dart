@@ -16,10 +16,10 @@ class SlipsDashboardScreen extends StatefulWidget {
 
 class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
   bool _isLoading = true;
-  int _pendingGatePasses = 0;
-  int _pendingPinkSlips = 0;
-  int _pendingLabPermissions = 0;
-  int _pendingLeaveForms = 0;
+  final int _pendingGatePasses = 0;
+  final int _pendingPinkSlips = 0;
+  final int _pendingLabPermissions = 0;
+  final int _pendingLeaveForms = 0;
 
   final List<Map<String, dynamic>> sections = [
     {

@@ -212,12 +212,40 @@ class _LeaveFormsAdminState extends State<LeaveFormsAdmin> {
           itemCount: forms.length,
           itemBuilder: (context, index) {
             final form = forms[index];
+            final String studentName = form['studentName'] ?? 'Student';
+            final String dateRange = '${form['dateFrom']} to ${form['dateTo']}';
+            final String reason = form['reason'] ?? 'No reason provided';
+            final String status = form['status'] ?? 'pending';
+
             return Card(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: status == 'approved'
+                      ? Colors.green
+                      : status == 'rejected'
+                          ? Colors.red
+                          : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               child: ListTile(
                 onTap: () => showPassDetails(context, form),
-                title: Text(form['name']),
-                subtitle: Text('${form['dateFrom']} to ${form['dateTo']}'),
-                trailing: form['status'] == 'pending'
+                title: Text(studentName),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(dateRange),
+                    Text(
+                      reason,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                trailing: status == 'pending'
                     ? Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -234,7 +262,7 @@ class _LeaveFormsAdminState extends State<LeaveFormsAdmin> {
                         ],
                       )
                     : Icon(
-                        form['status'] == 'approved'
+                        status == 'approved'
                             ? Icons.check_circle
                             : Icons.cancel,
                         color: statusColor,
