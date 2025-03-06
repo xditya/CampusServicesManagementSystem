@@ -3,6 +3,7 @@ import 'package:csms/helper/database/gate_pass_db.dart' as gate_pass_db;
 import 'package:csms/helper/database/pink_slip_db.dart' as pink_slip_db;
 import 'package:csms/helper/database/lab_permission_db.dart'
     as lab_permission_db;
+import 'package:csms/helper/database/leave_form_db.dart' as leave_form_db;
 import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:flutter/material.dart';
 
@@ -18,6 +19,36 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
   int _pendingGatePasses = 0;
   int _pendingPinkSlips = 0;
   int _pendingLabPermissions = 0;
+  int _pendingLeaveForms = 0;
+
+  final List<Map<String, dynamic>> sections = [
+    {
+      'title': 'Permission Slips',
+      'icon': Icons.description,
+      'cards': [
+        {
+          'title': 'Pink Slips',
+          'icon': Icons.description,
+          'count': 0,
+        },
+        {
+          'title': 'Gate Passes',
+          'icon': Icons.door_sliding,
+          'count': 0,
+        },
+        {
+          'title': 'Lab Access',
+          'icon': Icons.science,
+          'count': 0,
+        },
+        {
+          'title': 'Leave Forms',
+          'icon': Icons.event_busy,
+          'count': 0,
+        },
+      ],
+    },
+  ];
 
   @override
   void initState() {
@@ -35,8 +66,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
       final pendingPassCount = passes
           .where((pass) =>
               pass['status'] == 'pending' &&
-              !(pass['approvedBy'] as List).contains(session.email) &&
-              !(pass['rejectedBy'] as List).contains(session.email))
+              (pass['approvalsRequired'] as List).contains(session.email))
           .length;
 
       // Get pink slip counts
@@ -44,8 +74,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
       final pendingSlipCount = slips
           .where((slip) =>
               slip['status'] == 'pending' &&
-              !(slip['approvedBy'] as List).contains(session.email) &&
-              !(slip['rejectedBy'] as List).contains(session.email))
+              (slip['approvalsRequired'] as List).contains(session.email))
           .length;
 
       // Get lab permission counts
@@ -54,14 +83,21 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
       final pendingPermissionCount = permissions
           .where((permission) =>
               permission['status'] == 'pending' &&
-              !(permission['approvedBy'] as List).contains(session.email) &&
-              !(permission['rejectedBy'] as List).contains(session.email))
+              (permission['approvalsRequired'] as List).contains(session.email))
+          .length;
+
+      final leaveForms = await leave_form_db.getFormsForApproval(session.email);
+      final pendingLeaveCount = leaveForms
+          .where((form) =>
+              form['status'] == 'pending' &&
+              (form['approvalsRequired'] as List).contains(session.email))
           .length;
 
       setState(() {
-        _pendingGatePasses = pendingPassCount;
-        _pendingPinkSlips = pendingSlipCount;
-        _pendingLabPermissions = pendingPermissionCount;
+        sections[0]['cards'][0]['count'] = pendingSlipCount;
+        sections[0]['cards'][1]['count'] = pendingPassCount;
+        sections[0]['cards'][2]['count'] = pendingPermissionCount;
+        sections[0]['cards'][3]['count'] = pendingLeaveCount;
         _isLoading = false;
       });
     } catch (e) {
@@ -174,7 +210,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
             'description':
                 'Process student leave applications. Review reasons, dates, and manage approvals.',
             'color': Colors.amber,
-            'count': 8,
+            'count': _pendingLeaveForms,
           },
         ],
       },
@@ -218,7 +254,6 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
         ],
       }
     ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Slips Dashboard'),

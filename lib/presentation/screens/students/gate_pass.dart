@@ -109,6 +109,8 @@ class _GatePassPageState extends State<GatePassPage> {
                         setState(() => _selectedFaculty = value),
                     onPrincipalChanged: (value) =>
                         setState(() => _includePrincipal = value),
+                    onNameChanged: (name) =>
+                        setState(() => _studentNameController.text = name),
                   ),
                   const SizedBox(height: 16),
                   Card(
@@ -370,7 +372,7 @@ class _GatePassPageState extends State<GatePassPage> {
         // Create gate pass request with unique approvals
         final passData = {
           'email': session.email,
-          'name': session.name,
+          'name': _studentNameController.text,
           'rollNo': _rollNo,
           'branch': _selectedBranch,
           'class': _selectedClass,

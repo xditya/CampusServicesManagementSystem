@@ -82,6 +82,8 @@ class _LostIdPageState extends State<LostIdPage> {
                 child: Column(
                   children: [
                     StudentInfoCard(
+                      onNameChanged: (name) =>
+                          setState(() => _studentNameController.text = name),
                       onBranchChanged: (value) =>
                           setState(() => _selectedBranch = value),
                       onClassChanged: (value) =>

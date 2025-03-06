@@ -232,6 +232,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                         _selectedBranch = value;
                         _selectedAdvisor = null;
                         _selectedFaculty = null;
+                        _updateBranchController();
                       });
                     },
                     onClassChanged: (value) {
@@ -254,6 +255,8 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                         setState(() => _selectedFaculty = value),
                     onPrincipalChanged: (value) =>
                         setState(() => _includePrincipal = value),
+                    onNameChanged: (name) =>
+                        setState(() => _studentNameController.text = name),
                   ),
                   const SizedBox(height: 16),
                   Card(
@@ -515,7 +518,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
       final faculties = Faculties();
       final slipData = {
         'email': session.email,
-        'name': session.name,
+        'name': _studentNameController.text,
         'rollNo': _rollNoController.text,
         'branch': _selectedBranch,
         'class': _selectedClass,
@@ -527,13 +530,13 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
         'advisor': _selectedAdvisor,
         'faculty': _selectedFaculty,
         'includePrincipal': _includePrincipal,
-        'approvalsRequired': [
+        'approvalsRequired': {
           faculties.allFacultyEmails[_selectedAdvisor]!,
           if (_selectedFaculty != null)
             faculties.allFacultyEmails[_selectedFaculty]!,
           if (_includePrincipal)
             faculties.allFacultyEmails[faculties.principal]!,
-        ].toSet().toList(),
+        }.toList(),
         'approvedBy': [],
         'rejectedBy': [],
         'status': 'pending',

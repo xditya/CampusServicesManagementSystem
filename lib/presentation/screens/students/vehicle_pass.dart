@@ -14,6 +14,7 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
   final _vehicleNumberController = TextEditingController();
   final _hoursController = TextEditingController();
   final _timeFromController = TextEditingController();
+  final _studentNameController = TextEditingController();
 
   String? _selectedBranch;
   String? _selectedClass;
@@ -103,6 +104,8 @@ class _VehiclePassPageState extends State<VehiclePassPage> {
                     onAdvisorChanged: (_) {},
                     onFacultyChanged: (_) {},
                     onPrincipalChanged: (_) {},
+                    onNameChanged: (name) =>
+                        setState(() => _studentNameController.text = name),
                   ),
                   const SizedBox(height: 16),
                   Card(

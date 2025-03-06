@@ -1,7 +1,11 @@
+import 'package:csms/helper/config.dart';
 import 'package:csms/helper/data/faculties.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:csms/presentation/widgets/student_info_card.dart';
+import 'package:csms/helper/database/leave_form_db.dart' as leave_form_db;
+import 'package:csms/services/websocket_service.dart';
+import 'dart:convert';
 
 class LeaveFormPage extends StatefulWidget {
   const LeaveFormPage({super.key});
@@ -31,6 +35,8 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
   final _allFaculty = Faculties().allFaculty;
   final _hods = Faculties().hods;
   final _principal = Faculties().principal;
+
+  String _studentName = '';
 
   @override
   void initState() {
@@ -124,6 +130,35 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Leave Application'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: Card(
+              child: InkWell(
+                onTap: () => _showMyLeaveForms(context),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.receipt_long),
+                      const SizedBox(width: 8),
+                      Text(
+                        'View My Leave Forms',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -147,9 +182,12 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
                         setState(() => _selectedBatch = value),
                     onRollNumberChanged: (value) =>
                         setState(() => _rollNo = value),
-                    onAdvisorChanged: (_) {},
-                    onFacultyChanged: (_) {},
-                    onPrincipalChanged: (_) {},
+                    onAdvisorChanged: (advisor) => _selectedAdvisor = advisor,
+                    onFacultyChanged: (faculty) => _selectedFaculty = faculty,
+                    onPrincipalChanged: (value) =>
+                        setState(() => _includePrincipal = value),
+                    onNameChanged: (name) =>
+                        setState(() => _studentName = name),
                   ),
                   const SizedBox(height: 16),
                   Card(
@@ -222,35 +260,11 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Approvals Required',
+                            'Head of Department',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Advisor *',
-                            value: _selectedAdvisor,
-                            items: _selectedBranch != null &&
-                                    _selectedBatch != null &&
-                                    _selectedClass != null
-                                ? _advisors[_selectedBranch]![_selectedBatch!
-                                    .toInt()]![_selectedClass!.toInt()]!
-                                : [],
-                            prefixIcon: Icons.person,
-                            onChanged: (value) {
-                              setState(() => _selectedAdvisor = value);
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildSearchableDropdown(
-                            label: 'Faculty (Optional)',
-                            value: _selectedFaculty,
-                            items: _allFaculty,
-                            onChanged: (value) {
-                              setState(() => _selectedFaculty = value);
-                            },
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
@@ -263,19 +277,6 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
                               ),
                               prefixIcon: const Icon(Icons.person_2),
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          CheckboxListTile(
-                            title: const Text('Include Principal Approval'),
-                            subtitle: Text(_principal),
-                            value: _includePrincipal,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            contentPadding: EdgeInsets.zero,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _includePrincipal = value ?? false;
-                              });
-                            },
                           ),
                         ],
                       ),
@@ -438,7 +439,9 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedBranch == null ||
           _selectedClass == null ||
-          _selectedBatch == null) {
+          _selectedBatch == null ||
+          _selectedAdvisor == null ||
+          _studentName.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please fill all required fields'),
@@ -451,13 +454,50 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
       setState(() => _isLoading = true);
 
       try {
-        // TODO: Implement form submission
-        await Future.delayed(const Duration(seconds: 2));
+        final session = await account.get();
+        final faculties = Faculties();
+        final Set<String> approvalsRequired = {};
+
+        // Add advisor email
+        if (_selectedAdvisor != null) {
+          final advisorEmail = faculties.allFacultyEmails[_selectedAdvisor];
+          if (advisorEmail != null) approvalsRequired.add(advisorEmail);
+        }
+
+        // Add HOD email
+        final hodEmail = faculties.allFacultyEmails[_hods[_selectedBranch]];
+        if (hodEmail != null) approvalsRequired.add(hodEmail);
+
+        // Add principal email if selected
+        if (_includePrincipal) {
+          final principalEmail =
+              faculties.allFacultyEmails[faculties.principal];
+          if (principalEmail != null) approvalsRequired.add(principalEmail);
+        }
+
+        final leaveForm = {
+          'name': _studentName,
+          'email': session.email,
+          'branch': _selectedBranch,
+          'class': _selectedClass,
+          'batch': _selectedBatch,
+          'rollNo': _rollNo,
+          'reason': _reasonController.text,
+          'dateFrom': _dateFromController.text,
+          'dateTo': _dateToController.text,
+          'status': 'pending',
+          'approvalsRequired': approvalsRequired.toList(),
+          'approvedBy': [],
+          'rejectedBy': [],
+          'createdAt': DateTime.now().toIso8601String(),
+        };
+
+        await leave_form_db.createLeaveForm(leaveForm);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Leave application submitted successfully'),
+              content: Text('Leave form submitted successfully'),
               backgroundColor: Colors.green,
             ),
           );
@@ -467,7 +507,7 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error submitting application: $e'),
+              content: Text('Error submitting form: $e'),
               backgroundColor: Colors.red,
             ),
           );
@@ -479,10 +519,176 @@ class _LeaveFormPageState extends State<LeaveFormPage> {
       }
     }
   }
+
+  Future<void> _showMyLeaveForms(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, controller) =>
+            MyLeaveFormsSheet(scrollController: controller),
+      ),
+    );
+  }
 }
 
 extension on String {
   toInt() {
     return int.parse(this);
+  }
+}
+
+class MyLeaveFormsSheet extends StatefulWidget {
+  final ScrollController scrollController;
+
+  const MyLeaveFormsSheet({super.key, required this.scrollController});
+
+  @override
+  State<MyLeaveFormsSheet> createState() => _MyLeaveFormsSheetState();
+}
+
+class _MyLeaveFormsSheetState extends State<MyLeaveFormsSheet> {
+  List<Map<String, dynamic>> _forms = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadForms();
+  }
+
+  Future<void> _loadForms() async {
+    try {
+      final session = await account.get();
+      final forms = await leave_form_db.getFormsByEmail(session.email);
+      if (mounted) {
+        setState(() {
+          _forms = forms.reversed.toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading forms: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppBar(
+          title: const Text('My Leave Forms'),
+          centerTitle: true,
+          automaticallyImplyLeading: false,
+        ),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                  onRefresh: _loadForms,
+                  child: ListView.builder(
+                    controller: widget.scrollController,
+                    padding: const EdgeInsets.all(8),
+                    itemCount: _forms.length,
+                    itemBuilder: (context, index) {
+                      final form = _forms[index];
+                      final status = form['status'] as String;
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: status == 'approved'
+                                ? Colors.green
+                                : status == 'rejected'
+                                    ? Colors.red
+                                    : Colors.grey.shade300,
+                            width: 2,
+                          ),
+                        ),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${form['dateFrom']} - ${form['dateTo']}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: status == 'approved'
+                                          ? Colors.green.withOpacity(0.1)
+                                          : status == 'rejected'
+                                              ? Colors.red.withOpacity(0.1)
+                                              : Colors.orange.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      status.toUpperCase(),
+                                      style: TextStyle(
+                                        color: status == 'approved'
+                                            ? Colors.green
+                                            : status == 'rejected'
+                                                ? Colors.red
+                                                : Colors.orange,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                form['reason'],
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                              if (status == 'pending' &&
+                                  form['approvalsRequired'] != null) ...[
+                                const SizedBox(height: 16),
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Waiting for approval from: ${(form['approvalsRequired'] as List).join(", ")}',
+                                  style: TextStyle(
+                                    color: Colors.orange.shade800,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
   }
 }

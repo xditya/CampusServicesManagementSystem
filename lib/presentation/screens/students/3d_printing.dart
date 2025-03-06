@@ -13,6 +13,7 @@ class ThreeDPrintingPage extends StatefulWidget {
 class _ThreeDPrintingPageState extends State<ThreeDPrintingPage> {
   final _formKey = GlobalKey<FormState>();
   final _hoursController = TextEditingController();
+  final _studentNameController = TextEditingController();
 
   String? _selectedBranch;
   String? _selectedClass;
@@ -78,6 +79,8 @@ class _ThreeDPrintingPageState extends State<ThreeDPrintingPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   StudentInfoCard(
+                    onNameChanged: (name) =>
+                        setState(() => _studentNameController.text = name),
                     onBranchChanged: (value) {
                       setState(() => _selectedBranch = value);
                     },

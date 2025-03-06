@@ -77,15 +77,41 @@ class NotificationService {
     }
   }
 
+  Future<void> sendLeaveFormUpdateNotification(
+    String email,
+    String status,
+    String dateFrom,
+    String dateTo,
+  ) async {
+    final title = 'Leave Form ${status.toUpperCase()}';
+    final body = status == 'approved'
+        ? 'Your leave application for $dateFrom to $dateTo has been approved'
+        : 'Your leave application for $dateFrom to $dateTo has been rejected';
+
+    await _localNotifications.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'leave_forms',
+          'Leave Forms',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
+
   // Optional: Generic method to handle different notification types
   Future<void> handleWebSocketNotification(Map<String, dynamic> data) async {
     try {
-      final type = data['data']['type'] as String?;
+      final type = data['type'] as String;
 
       switch (type) {
         case 'lab_permission':
           await sendLabPermissionNotification(
-            data['data']['status'],
+            data['status'],
             data['body'].toString().split(' for ')[1].split(' has been ')[0],
           );
           break;
@@ -93,6 +119,14 @@ class NotificationService {
           await sendPrintCompletedNotification(
             data['email'],
             data['data']['processName'],
+          );
+          break;
+        case 'leave_form_update':
+          await sendLeaveFormUpdateNotification(
+            data['userEmail'],
+            data['status'],
+            data['data']['dateFrom'],
+            data['data']['dateTo'],
           );
           break;
         default:

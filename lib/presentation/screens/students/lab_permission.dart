@@ -35,6 +35,7 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
   bool? _selectedPrincipal;
   final _advisors = Faculties().advisors;
   final _departmentLabs = Labs().departmentLabs;
+  String _studentName = '';
 
   @override
   void initState() {
@@ -118,6 +119,7 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
                     setState(() => _selectedFaculty = value.toString()),
                 onPrincipalChanged: (value) =>
                     setState(() => _selectedPrincipal = value),
+                onNameChanged: (name) => setState(() => _studentName = name),
               ),
               const SizedBox(height: 16),
               // Lab Request Details Card
@@ -346,7 +348,7 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
         }
 
         final labPermission = {
-          'name': session.name,
+          'name': _studentName,
           'email': session.email,
           'branch': _selectedBranch,
           'class': _selectedClass,

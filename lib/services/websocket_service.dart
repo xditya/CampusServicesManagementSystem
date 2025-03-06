@@ -141,6 +141,26 @@ class WebSocketService {
               'Notifications about lab permission status changes',
             );
           }
+
+          // Handle leave form notifications
+          if (data['type'] == 'leave_form_update' &&
+              session.email == data['userEmail']) {
+            final status = data['status'];
+            final formData = data['data'];
+
+            String title = 'Leave Form ${status.toUpperCase()}';
+            String message = status == 'approved'
+                ? 'Your leave application for ${formData['dateFrom']} to ${formData['dateTo']} has been approved'
+                : 'Your leave application for ${formData['dateFrom']} to ${formData['dateTo']} has been rejected by ${formData['updatedBy']}';
+
+            await _showNotification(
+              title,
+              message,
+              'leave_form_channel',
+              'Leave Form Status',
+              'Notifications about leave form status changes',
+            );
+          }
         } catch (e) {
           debugPrint('Error handling WebSocket message: $e');
           debugPrint('Raw message: $message');

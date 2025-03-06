@@ -10,6 +10,7 @@ class StudentInfoCard extends StatefulWidget {
   final void Function(String?) onAdvisorChanged;
   final void Function(String?) onFacultyChanged;
   final void Function(bool) onPrincipalChanged;
+  final void Function(String) onNameChanged;
 
   const StudentInfoCard({
     super.key,
@@ -20,6 +21,7 @@ class StudentInfoCard extends StatefulWidget {
     required this.onAdvisorChanged,
     required this.onFacultyChanged,
     required this.onPrincipalChanged,
+    required this.onNameChanged,
   });
 
   @override
@@ -53,12 +55,18 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
   }
 
   Future<void> _loadUserName() async {
-    final session = await account.get();
-    if (mounted) {
-      setState(() {
-        _studentNameController.text = session.name;
-        _emailController.text = session.email;
-      });
+    try {
+      final session = await account.get();
+      if (mounted) {
+        setState(() {
+          _studentNameController.text = session.name;
+          _emailController.text = session.email;
+          widget.onNameChanged(session.name);
+        });
+      }
+    } catch (e) {
+      // If session name is not available, leave the text field empty for manual input
+      debugPrint('Error loading user name: $e');
     }
   }
 
@@ -115,10 +123,10 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
             ),
             const SizedBox(height: 16),
             _buildTextField(
-              label: 'Student Name',
+              label: 'Full Name',
               controller: _studentNameController,
               prefixIcon: Icons.person,
-              readOnly: _studentNameController.text.isNotEmpty,
+              onChanged: (value) => widget.onNameChanged(value),
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -269,17 +277,25 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
   }) {
     return DropdownButtonFormField<String>(
       value: value,
+      isExpanded: true,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),
         prefixIcon: Icon(prefixIcon),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 8,
+        ),
       ),
       items: items.map((String item) {
         return DropdownMenuItem<String>(
           value: item,
-          child: Text(item),
+          child: Text(
+            item,
+            overflow: TextOverflow.ellipsis,
+          ),
         );
       }).toList(),
       onChanged: onChanged,
