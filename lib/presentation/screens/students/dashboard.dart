@@ -236,75 +236,124 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     SizedBox(
                       height: 170,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: (section['cards'] as List).length,
-                        itemBuilder: (context, cardIndex) {
-                          final card = (section['cards'] as List)[cardIndex];
-                          return Container(
-                            width: 160,
-                            margin: const EdgeInsets.all(8),
-                            child: Card(
-                              elevation: 2,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(12),
-                                onTap: () => Navigator.pushNamed(
-                                  context,
-                                  card['route'] as String,
-                                ),
-                                onLongPress: () =>
-                                    _showDescription(context, card),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: (card['color'] as Color)
-                                              .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final cards = section['cards'] as List;
+                          final totalWidth = (cards.length * 176.0);
+                          final showScrollIndicator =
+                              totalWidth > constraints.maxWidth;
+
+                          return Stack(
+                            children: [
+                              ListView.builder(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                scrollDirection: Axis.horizontal,
+                                itemCount: cards.length,
+                                itemBuilder: (context, cardIndex) {
+                                  final card = cards[cardIndex];
+                                  return Container(
+                                    width: 160,
+                                    margin: const EdgeInsets.all(8),
+                                    child: Card(
+                                      elevation: 2,
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(12),
+                                        onTap: () => Navigator.pushNamed(
+                                          context,
+                                          card['route'] as String,
                                         ),
-                                        child: Icon(
-                                          card['icon'] as IconData,
-                                          color: card['color'] as Color,
-                                          size: 32,
+                                        onLongPress: () =>
+                                            _showDescription(context, card),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(12),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      (card['color'] as Color)
+                                                          .withOpacity(0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Icon(
+                                                  card['icon'] as IconData,
+                                                  color: card['color'] as Color,
+                                                  size: 32,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 12),
+                                              Text(
+                                                card['title'] as String,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Hold to learn more',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface
+                                                          .withOpacity(0.5),
+                                                      fontSize: 10,
+                                                    ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        card['title'] as String,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                        textAlign: TextAlign.center,
+                                    ),
+                                  );
+                                },
+                              ),
+                              if (showScrollIndicator)
+                                Positioned(
+                                  right: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 32,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: [
+                                          Theme.of(context)
+                                              .scaffoldBackgroundColor
+                                              .withOpacity(0),
+                                          Theme.of(context)
+                                              .scaffoldBackgroundColor,
+                                        ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Hold to learn more',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withOpacity(0.5),
-                                              fontSize: 10,
-                                            ),
-                                        textAlign: TextAlign.center,
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.chevron_right,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.5),
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
+                            ],
                           );
                         },
                       ),

@@ -547,14 +547,9 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Pink slip submitted successfully'),
+          const SnackBar(
+            content: Text('Pink slip submitted successfully'),
             backgroundColor: Colors.green,
-            action: SnackBarAction(
-              label: 'View Slips',
-              textColor: Colors.white,
-              onPressed: () => _showMySlips(context),
-            ),
           ),
         );
         _formKey.currentState!.reset();
