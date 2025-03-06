@@ -184,39 +184,6 @@ class _GatePassPageState extends State<GatePassPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Approvals Required',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Advisor *',
-                            value: _selectedAdvisor,
-                            items: _selectedBranch != null &&
-                                    _selectedBatch != null &&
-                                    _selectedClass != null
-                                ? _advisors[_selectedBranch]![_selectedBatch!
-                                    .toInt()]![_selectedClass!.toInt()]!
-                                : [],
-                            prefixIcon: Icons.person,
-                            onChanged: (value) {
-                              setState(() => _selectedAdvisor = value);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 24),
                   _buildSubmitButton(),
                 ],
