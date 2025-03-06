@@ -193,6 +193,30 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
           },
         ],
       },
+      {
+        'title': 'Other',
+        'icon': Icons.more_horiz,
+        'cards': [
+          {
+            'title': '3D Printing',
+            'icon': Icons.print,
+            'route': '/admin/3d-printing',
+            'description':
+                'Process 3D printing requests. Review and manage print jobs.',
+            'color': Colors.blue,
+            'count': 0,
+          },
+          {
+            'title': 'Vehicle Passes',
+            'icon': Icons.directions_car,
+            'route': '/admin/vehicle-passes',
+            'description':
+                'Review vehicle pass applications. Monitor entry/exit requests and manage approvals.',
+            'color': Colors.orange,
+            'count': 0,
+          },
+        ],
+      }
     ];
 
     return Scaffold(
