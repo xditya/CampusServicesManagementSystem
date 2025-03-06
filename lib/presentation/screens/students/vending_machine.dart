@@ -1,4 +1,5 @@
 import 'package:csms/helper/database/vending_db.dart';
+import 'package:csms/presentation/screens/common/success_animation.dart';
 import 'package:flutter/material.dart';
 import 'package:csms/presentation/providers/vending_provider.dart';
 import 'package:csms/helper/data/vending_items.dart';
@@ -246,7 +247,7 @@ class VendingMachineBottomBar extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
-      builder: (context) => Padding(
+      builder: (bottomSheetContext) => Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -277,67 +278,34 @@ class VendingMachineBottomBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(bottomSheetContext),
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () async {
-                    // First close the bottom sheet
-                    Navigator.pop(context);
-
-                    // Create a BuildContext variable to store the outer context
-                    final scaffoldContext = context;
-
+                    Navigator.pop(bottomSheetContext); // Close bottom sheet
                     try {
                       await provider.processPurchase();
-
-                      // Use the stored context to show the success message
-                      if (scaffoldContext.mounted) {
-                        ScaffoldMessenger.of(scaffoldContext)
-                            .clearSnackBars(); // Clear any existing SnackBars
-                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                          SnackBar(
-                            content: const Row(
-                              children: [
-                                Icon(Icons.check_circle, color: Colors.white),
-                                SizedBox(width: 8),
-                                Expanded(
-                                    child: Text('Order placed successfully!')),
-                              ],
-                            ),
-                            backgroundColor: Colors.green,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 4),
-                            action: SnackBarAction(
-                              label: 'View Orders',
-                              textColor: Colors.white,
-                              onPressed: () {
-                                Navigator.pushNamed(
-                                    scaffoldContext, '/my-orders');
+                      if (context.mounted) {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SuccessAnimationScreen(
+                              title: 'Order Placed Successfully',
+                              message: 'Your order has been confirmed',
+                              onBackPressed: () {
+                                Navigator.pushReplacementNamed(
+                                    context, '/vending-machine');
                               },
                             ),
                           ),
                         );
                       }
                     } catch (error) {
-                      if (scaffoldContext.mounted) {
-                        ScaffoldMessenger.of(scaffoldContext)
-                            .clearSnackBars(); // Clear any existing SnackBars
-                        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
-                          SnackBar(
-                            content: Row(
-                              children: [
-                                const Icon(Icons.error_outline,
-                                    color: Colors.white),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(error.toString())),
-                              ],
-                            ),
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 4),
-                          ),
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(error.toString())),
                         );
                       }
                     }

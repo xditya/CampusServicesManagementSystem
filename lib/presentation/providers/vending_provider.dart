@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:csms/helper/database/balance_db.dart';
 import 'package:csms/helper/database/vending_db.dart';
 import 'package:csms/helper/config.dart';
+import 'package:flutter/material.dart';
 
 class VendingProvider extends ChangeNotifier {
   final Map<String, int> _selectedItems = {};
