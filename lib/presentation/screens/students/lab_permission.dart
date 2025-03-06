@@ -4,6 +4,9 @@ import 'package:csms/helper/data/labs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:csms/presentation/widgets/student_info_card.dart';
+import 'package:csms/helper/database/db_service.dart';
+import 'package:csms/helper/database/lab_permission_db.dart'
+    as lab_permission_db;
 
 class LabPermissionPage extends StatefulWidget {
   const LabPermissionPage({super.key});
@@ -28,6 +31,8 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
 
   late List<String> _labs = [];
   String? _selectedAdvisor;
+  String? _selectedFaculty;
+  bool? _selectedPrincipal;
   final _advisors = Faculties().advisors;
   final _departmentLabs = Labs().departmentLabs;
 
@@ -60,6 +65,35 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lab Permission Request'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: Card(
+              child: InkWell(
+                onTap: () => _showMyPermissions(context),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.science),
+                      const SizedBox(width: 8),
+                      Text(
+                        'View My Lab Permissions',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -69,16 +103,21 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               StudentInfoCard(
-                onBranchChanged: (value) =>
-                    setState(() => _selectedBranch = value),
+                onBranchChanged: (value) => {
+                  setState(() => _selectedBranch = value),
+                  _updateLabsList(),
+                },
                 onClassChanged: (value) =>
                     setState(() => _selectedClass = value),
                 onBatchChanged: (value) =>
                     setState(() => _selectedBatch = value),
                 onRollNumberChanged: (value) => setState(() => _rollNo = value),
-                onAdvisorChanged: (_) {},
-                onFacultyChanged: (_) {},
-                onPrincipalChanged: (_) {},
+                onAdvisorChanged: (value) =>
+                    setState(() => _selectedAdvisor = value.toString()),
+                onFacultyChanged: (value) =>
+                    setState(() => _selectedFaculty = value.toString()),
+                onPrincipalChanged: (value) =>
+                    setState(() => _selectedPrincipal = value),
               ),
               const SizedBox(height: 16),
               // Lab Request Details Card
@@ -145,40 +184,6 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Approvals Card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Approvals Required',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildDropdown(
-                        label: 'Advisor *',
-                        value: _selectedAdvisor,
-                        items: _selectedBranch != null &&
-                                _selectedBatch != null &&
-                                _selectedClass != null
-                            ? _advisors[_selectedBranch]![_selectedBatch!
-                                .toInt()]![_selectedClass!.toInt()]!
-                            : [],
-                        prefixIcon: Icons.person,
-                        onChanged: (value) {
-                          setState(() => _selectedAdvisor = value);
-                        },
                       ),
                     ],
                   ),
@@ -306,7 +311,8 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
       if (_selectedBranch == null ||
           _selectedClass == null ||
           _selectedBatch == null ||
-          _selectedLab == null) {
+          _selectedLab == null ||
+          _selectedAdvisor == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please fill all required fields'),
@@ -319,8 +325,46 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
       setState(() => _isLoading = true);
 
       try {
-        // TODO: Implement form submission
-        await Future.delayed(const Duration(seconds: 2));
+        final session = await account.get();
+        final faculties = Faculties();
+        final List<String> approvalsRequired = [];
+
+        if (_selectedAdvisor != null) {
+          final advisorEmail = faculties.allFacultyEmails[_selectedAdvisor];
+          if (advisorEmail != null) approvalsRequired.add(advisorEmail);
+        }
+
+        if (_selectedFaculty != null) {
+          final facultyEmail = faculties.allFacultyEmails[_selectedFaculty];
+          if (facultyEmail != null) approvalsRequired.add(facultyEmail);
+        }
+
+        if (_selectedPrincipal == true) {
+          final principalEmail =
+              faculties.allFacultyEmails[faculties.principal];
+          if (principalEmail != null) approvalsRequired.add(principalEmail);
+        }
+
+        final labPermission = {
+          'name': session.name,
+          'email': session.email,
+          'branch': _selectedBranch,
+          'class': _selectedClass,
+          'batch': _selectedBatch,
+          'rollNo': _rollNo,
+          'lab': _selectedLab,
+          'purpose': _purposeController.text,
+          'date': _dateController.text,
+          'timeFrom': _timeFromController.text,
+          'timeTo': _timeToController.text,
+          'status': 'pending',
+          'approvalsRequired': approvalsRequired,
+          'approvedBy': [],
+          'rejectedBy': [],
+          'createdAt': DateTime.now().toIso8601String(),
+        };
+
+        await lab_permission_db.createLabPermission(labPermission);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -365,10 +409,203 @@ class _LabPermissionPageState extends State<LabPermissionPage> {
       });
     }
   }
+
+  Future<void> _showMyPermissions(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, controller) =>
+            MyLabPermissionsSheet(scrollController: controller),
+      ),
+    );
+  }
 }
 
-extension on String {
-  toInt() {
-    return int.parse(this);
+class MyLabPermissionsSheet extends StatefulWidget {
+  final ScrollController scrollController;
+
+  const MyLabPermissionsSheet({super.key, required this.scrollController});
+
+  @override
+  State<MyLabPermissionsSheet> createState() => _MyLabPermissionsSheetState();
+}
+
+class _MyLabPermissionsSheetState extends State<MyLabPermissionsSheet> {
+  List<Map<String, dynamic>> _permissions = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPermissions();
+  }
+
+  Future<void> _loadPermissions() async {
+    try {
+      final session = await account.get();
+      final permissions =
+          await lab_permission_db.getLabPermissionsByEmail(session.email);
+      permissions.sort((a, b) => DateTime.parse(b['createdAt'])
+          .compareTo(DateTime.parse(a['createdAt'])));
+
+      setState(() {
+        _permissions = permissions;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.8,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (context, scrollController) => Column(
+        children: [
+          AppBar(
+            title: const Text('My Lab Permissions'),
+            centerTitle: true,
+            automaticallyImplyLeading: false,
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : RefreshIndicator(
+                    onRefresh: _loadPermissions,
+                    child: ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(8),
+                      itemCount: _permissions.length,
+                      itemBuilder: (context, index) {
+                        final permission = _permissions[index];
+                        final status = permission['status'] as String;
+                        return Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: status == 'approved'
+                                  ? Colors.green
+                                  : status == 'rejected'
+                                      ? Colors.red
+                                      : Colors.grey.shade300,
+                              width: 2,
+                            ),
+                          ),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        permission['date'],
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: status == 'approved'
+                                            ? Colors.green.withOpacity(0.1)
+                                            : status == 'rejected'
+                                                ? Colors.red.withOpacity(0.1)
+                                                : Colors.orange
+                                                    .withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        status.toUpperCase(),
+                                        style: TextStyle(
+                                          color: status == 'approved'
+                                              ? Colors.green
+                                              : status == 'rejected'
+                                                  ? Colors.red
+                                                  : Colors.orange,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Lab: ${permission['lab']}',
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  permission['purpose'],
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${permission['timeFrom']} - ${permission['timeTo']}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                                if (status == 'rejected' &&
+                                    permission['rejectedBy'] != null &&
+                                    (permission['rejectedBy'] as List)
+                                        .isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Rejected by: ${(permission['rejectedBy'] as List).first}',
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                                if (status == 'pending' &&
+                                    permission['approvalsRequired'] !=
+                                        null) ...[
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Waiting for approval from: ${(permission['approvalsRequired'] as List).join(", ")}',
+                                    style: TextStyle(
+                                      color: Colors.orange.shade800,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 }

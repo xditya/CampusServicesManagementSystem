@@ -87,6 +87,17 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
     }
   }
 
+  List<String> _getFilteredAdvisors() {
+    if (_selectedBranch != null &&
+        _selectedBatch != null &&
+        _selectedClass != null) {
+      return _faculties.advisors[_selectedBranch]?[int.parse(_selectedBatch!)]
+              ?[int.parse(_selectedClass!)] ??
+          [];
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -166,19 +177,28 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
               onChanged: (value) => widget.onRollNumberChanged(value),
             ),
             const SizedBox(height: 16),
+            const Text(
+              'Approvals Required',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
             _buildDropdown(
-              label: 'Advisor',
+              label: 'Advisor *',
               value: _selectedAdvisor,
-              items: _faculties.advisorsList,
+              items: _getFilteredAdvisors(),
               prefixIcon: Icons.person_outline,
               onChanged: (value) {
                 setState(() => _selectedAdvisor = value);
                 widget.onAdvisorChanged(value);
               },
+              isRequired: true,
             ),
             const SizedBox(height: 16),
             _buildDropdown(
-              label: 'Faculty',
+              label: 'Faculty (Optional)',
               value: _selectedFaculty,
               items: _faculties.allFacultyList,
               prefixIcon: Icons.school,
@@ -186,6 +206,7 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
                 setState(() => _selectedFaculty = value);
                 widget.onFacultyChanged(value);
               },
+              isRequired: false,
             ),
             const SizedBox(height: 16),
             SwitchListTile(
@@ -244,6 +265,7 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
     required List<String> items,
     required IconData prefixIcon,
     required void Function(String?) onChanged,
+    bool isRequired = false,
   }) {
     return DropdownButtonFormField<String>(
       value: value,
@@ -261,12 +283,14 @@ class _StudentInfoCardState extends State<StudentInfoCard> {
         );
       }).toList(),
       onChanged: onChanged,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please select $label';
-        }
-        return null;
-      },
+      validator: isRequired
+          ? (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select $label';
+              }
+              return null;
+            }
+          : null,
     );
   }
 }

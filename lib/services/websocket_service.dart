@@ -122,6 +122,25 @@ class WebSocketService {
               'Notifications about pink slip status changes',
             );
           }
+
+          // Handle lab permission notifications
+          if (data['type'] == 'lab_permission_update' &&
+              session.email == data['userEmail']) {
+            final status = data['status'];
+            final permissionData = data['data'];
+
+            String title = 'Lab Permission ${status.toUpperCase()}';
+            String message =
+                'Your lab permission request for ${permissionData['lab']} has been $status';
+
+            await _showNotification(
+              title,
+              message,
+              'lab_permission_channel',
+              'Lab Permission Status',
+              'Notifications about lab permission status changes',
+            );
+          }
         } catch (e) {
           debugPrint('Error handling WebSocket message: $e');
           debugPrint('Raw message: $message');

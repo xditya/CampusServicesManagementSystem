@@ -42,5 +42,8 @@ class Labs {
       'Embedded Systems Lab',
       'Medical Electronics Lab'
     ],
+    'ADMIN': [
+      'Admin Lab',
+    ]
   };
 }

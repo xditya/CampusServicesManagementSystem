@@ -1,6 +1,8 @@
 import 'package:csms/helper/config.dart';
 import 'package:csms/helper/database/gate_pass_db.dart' as gate_pass_db;
 import 'package:csms/helper/database/pink_slip_db.dart' as pink_slip_db;
+import 'package:csms/helper/database/lab_permission_db.dart'
+    as lab_permission_db;
 import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +17,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
   bool _isLoading = true;
   int _pendingGatePasses = 0;
   int _pendingPinkSlips = 0;
+  int _pendingLabPermissions = 0;
 
   @override
   void initState() {
@@ -45,9 +48,20 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
               !(slip['rejectedBy'] as List).contains(session.email))
           .length;
 
+      // Get lab permission counts
+      final permissions =
+          await lab_permission_db.getPermissionsForApproval(session.email);
+      final pendingPermissionCount = permissions
+          .where((permission) =>
+              permission['status'] == 'pending' &&
+              !(permission['approvedBy'] as List).contains(session.email) &&
+              !(permission['rejectedBy'] as List).contains(session.email))
+          .length;
+
       setState(() {
         _pendingGatePasses = pendingPassCount;
         _pendingPinkSlips = pendingSlipCount;
+        _pendingLabPermissions = pendingPermissionCount;
         _isLoading = false;
       });
     } catch (e) {
@@ -145,7 +159,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
             'description':
                 'Handle lab access permission requests. Review and grant access to department labs.',
             'color': Colors.teal,
-            'count': 2,
+            'count': _pendingLabPermissions,
           },
         ],
       },
