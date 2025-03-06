@@ -284,7 +284,7 @@ class VendingMachineBottomBar extends StatelessWidget {
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () async {
-                    Navigator.pop(bottomSheetContext); // Close bottom sheet
+                    Navigator.pop(bottomSheetContext);
                     try {
                       await provider.processPurchase();
                       if (context.mounted) {
@@ -310,6 +310,10 @@ class VendingMachineBottomBar extends StatelessWidget {
                       }
                     }
                   },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text('Confirm'),
                 ),
               ],

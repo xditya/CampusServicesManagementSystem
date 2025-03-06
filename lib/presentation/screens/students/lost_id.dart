@@ -119,12 +119,13 @@ class _LostIdPageState extends State<LostIdPage> {
                             SizedBox(
                               width: double.infinity,
                               height: 50,
-                              child: ElevatedButton(
+                              child: FilledButton(
                                 onPressed: _isLoading ? null : _submitRequest,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.green,
                                   foregroundColor: Colors.white,
+                                  disabledBackgroundColor:
+                                      Colors.green.withOpacity(0.6),
                                 ),
                                 child: _isLoading
                                     ? const CircularProgressIndicator(

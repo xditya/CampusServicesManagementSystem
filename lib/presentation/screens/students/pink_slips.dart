@@ -320,21 +320,20 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
+                    height: 50,
                     child: FilledButton(
                       onPressed: _isLoading ? null : _submitForm,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Submit'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.green.withOpacity(0.6),
                       ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Submit Pink Slip',
+                              style: TextStyle(fontSize: 16),
+                            ),
                     ),
                   ),
                 ],

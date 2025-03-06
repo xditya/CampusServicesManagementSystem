@@ -265,14 +265,12 @@ class _GatePassPageState extends State<GatePassPage> {
     return SizedBox(
       width: double.infinity,
       height: 50,
-      child: ElevatedButton(
+      child: FilledButton(
         onPressed: _isLoading ? null : _submitForm,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).primaryColor,
+        style: FilledButton.styleFrom(
+          backgroundColor: Colors.green,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          disabledBackgroundColor: Colors.green.withOpacity(0.6),
         ),
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
