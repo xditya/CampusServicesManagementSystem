@@ -221,13 +221,14 @@ class MyOrdersScreen extends StatelessWidget {
               QrImageView(
                 data: qrData,
                 version: QrVersions.auto,
-                size: 200.0,
+                size: 200,
                 eyeStyle: QrEyeStyle(
                   color: isDark ? Colors.white : Colors.black,
+                  eyeShape: QrEyeShape.square,
                 ),
                 dataModuleStyle: QrDataModuleStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                ),
+                    color: isDark ? Colors.white : Colors.black,
+                    dataModuleShape: QrDataModuleShape.square),
               ),
               const SizedBox(height: 24),
               TextButton(
