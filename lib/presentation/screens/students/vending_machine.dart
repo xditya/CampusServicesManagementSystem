@@ -237,7 +237,7 @@ class VendingMachineBottomBar extends StatelessWidget {
             textColor: Colors.white,
             onPressed: () {
               // Navigate to add money screen if you have one
-              // Navigator.pushNamed(context, '/add-money');
+              Navigator.pushNamed(context, '/add-balance');
             },
           ),
         ),

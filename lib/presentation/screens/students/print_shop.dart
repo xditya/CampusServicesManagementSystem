@@ -96,7 +96,7 @@ class CostBreakdownCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                // color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -223,6 +223,15 @@ class PrintShopScreenState extends State<PrintShopScreen> {
                         if (costBreakdown != null)
                           CostBreakdownCard(breakdown: costBreakdown!),
                         const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: pickFile,
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Upload File'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         TextFormField(
                           decoration: const InputDecoration(
                             labelText: 'Process Name',
@@ -235,15 +244,6 @@ class PrintShopScreenState extends State<PrintShopScreen> {
                             return null;
                           },
                           onChanged: (value) => processName = value,
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton.icon(
-                          onPressed: pickFile,
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text('Upload File'),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
                         ),
                         if (fileName != null)
                           Padding(

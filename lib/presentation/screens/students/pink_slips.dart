@@ -36,6 +36,7 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
   String? _selectedAdvisor;
   String? _selectedFaculty;
   bool _includePrincipal = false;
+  bool _includeHod = false;
 
   final _faculties = Faculties();
 
@@ -317,6 +318,44 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Department Head',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Switch(
+                                value: _includeHod,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _includeHod = value;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          if (_includeHod) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              'HOD: ${_faculties.hods[_selectedBranch] ?? 'Select branch first'}',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
@@ -528,14 +567,21 @@ class _PinkSlipsPageState extends State<PinkSlipsPage> {
         'timeTo': _timeToController.text,
         'advisor': _selectedAdvisor,
         'faculty': _selectedFaculty,
-        'includePrincipal': _includePrincipal,
-        'approvalsRequired': {
+        'approvalsRequired': [
+          // Always include advisor
           faculties.allFacultyEmails[_selectedAdvisor]!,
+          // Include HOD if toggle is on
+          if (_includeHod && _selectedBranch != null)
+            faculties.allFacultyEmails[_faculties.hods[_selectedBranch]]!,
+          // Include selected faculty if any
           if (_selectedFaculty != null)
             faculties.allFacultyEmails[_selectedFaculty]!,
+          // Include principal if toggle is on
           if (_includePrincipal)
             faculties.allFacultyEmails[faculties.principal]!,
-        }.toList(),
+        ],
+        'includeHod': _includeHod,
+        'includePrincipal': _includePrincipal,
         'approvedBy': [],
         'rejectedBy': [],
         'status': 'pending',
