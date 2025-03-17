@@ -1,6 +1,7 @@
 import 'package:csms/helper/config.dart';
+import 'package:csms/helper/data/faculties.dart';
 import 'package:csms/helper/database/balance_db.dart' as balance_db;
-import 'package:csms/helper/database/id_card_db.dart' as id_card_db;
+import 'package:csms/helper/database/lost_id_db.dart' as id_card_db;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:csms/presentation/widgets/student_info_card.dart';
@@ -24,6 +25,12 @@ class _LostIdPageState extends State<LostIdPage> {
   Map<String, dynamic>? _receipt;
 
   final double _idCardFee = 300.0;
+
+  String? _selectedAdvisor;
+  String? _selectedFaculty;
+  bool _includePrincipal = false;
+
+  final faculties = Faculties();
 
   @override
   void initState() {
@@ -92,9 +99,12 @@ class _LostIdPageState extends State<LostIdPage> {
                           setState(() => _selectedBatch = value),
                       onRollNumberChanged: (value) =>
                           setState(() => _rollNo = value),
-                      onAdvisorChanged: (_) {},
-                      onFacultyChanged: (_) {},
-                      onPrincipalChanged: (_) {},
+                      onAdvisorChanged: (value) =>
+                          setState(() => _selectedAdvisor = value),
+                      onFacultyChanged: (value) =>
+                          setState(() => _selectedFaculty = value),
+                      onPrincipalChanged: (value) =>
+                          setState(() => _includePrincipal = value),
                     ),
                     const SizedBox(height: 24),
                     Card(
@@ -153,18 +163,42 @@ class _LostIdPageState extends State<LostIdPage> {
   }
 
   Widget _buildReceipt() {
+    final bool isRejected = _receipt!['status'] == 'rejected';
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'ID Card Request Receipt',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'ID Card Request Receipt',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isRejected
+                        ? Colors.red.withOpacity(0.1)
+                        : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _receipt!['status'].toUpperCase(),
+                    style: TextStyle(
+                      color: isRejected ? Colors.red : Colors.orange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const Divider(height: 32),
             _receiptRow('Name', _receipt!['name']),
@@ -179,14 +213,45 @@ class _LostIdPageState extends State<LostIdPage> {
                 DateFormat('dd/MM/yyyy')
                     .format(DateTime.parse(_receipt!['requestDate']))),
             _receiptRow('Amount Paid', '₹${_receipt!['amountPaid']}'),
-            const SizedBox(height: 24),
-            const Text(
-              'Please show this receipt to collect your new ID card\nfrom the administrative office.',
-              style: TextStyle(
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
+            if (isRejected) ...[
+              const Divider(height: 32),
+              Text(
+                'Rejected by: ${(_receipt!['rejectedBy'] as List).first}',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () async {
+                    try {
+                      await id_card_db.markRequestCompleted(_receipt!['email']);
+                      setState(() {
+                        _hasExistingRequest = false;
+                        _receipt = null;
+                      });
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Apply Again'),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -258,6 +323,16 @@ class _LostIdPageState extends State<LostIdPage> {
           'requestDate': DateTime.now().toString(),
           'amountPaid': _idCardFee,
           'status': 'pending',
+          'approvalsRequired': [
+            if (_selectedAdvisor != null)
+              faculties.allFacultyEmails[_selectedAdvisor]!,
+            if (_selectedFaculty != null)
+              faculties.allFacultyEmails[_selectedFaculty]!,
+            if (_includePrincipal)
+              faculties.allFacultyEmails[faculties.principal]!,
+          ],
+          'approvedBy': [],
+          'rejectedBy': [],
         };
 
         await id_card_db.createIdRequest(requestData);

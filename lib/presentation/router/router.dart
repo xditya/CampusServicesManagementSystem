@@ -1,6 +1,7 @@
 import 'package:csms/presentation/screens/admins/slips/gate_pass_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/lab_permission_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/leave_forms_admin.dart';
+import 'package:csms/presentation/screens/admins/slips/lost_id_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/pink_slips_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/slips_dashboard.dart';
 import 'package:csms/presentation/screens/students/3d_printing.dart';
@@ -282,6 +283,16 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const LeaveFormsAdmin();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/admin/id-requests',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const LostIdAdmin();
         },
       ),
       transitionType: TransitionType.fadeIn,
