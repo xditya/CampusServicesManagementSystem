@@ -4,6 +4,7 @@ import 'package:csms/helper/database/pink_slip_db.dart' as pink_slip_db;
 import 'package:csms/helper/database/lab_permission_db.dart'
     as lab_permission_db;
 import 'package:csms/helper/database/leave_form_db.dart' as leave_form_db;
+import 'package:csms/helper/database/lost_id_db.dart' as lost_id_db;
 import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
   final int _pendingPinkSlips = 0;
   final int _pendingLabPermissions = 0;
   final int _pendingLeaveForms = 0;
+  int _pendingIdRequests = 0;
 
   final List<Map<String, dynamic>> sections = [
     {
@@ -93,11 +95,21 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
               (form['approvalsRequired'] as List).contains(session.email))
           .length;
 
+      // Get ID card request counts
+      final idRequests =
+          await lost_id_db.getIdRequestsForApproval(session.email);
+      final pendingIdCount = idRequests
+          .where((request) =>
+              request['status'] == 'pending' &&
+              (request['approvalsRequired'] as List).contains(session.email))
+          .length;
+
       setState(() {
         sections[0]['cards'][0]['count'] = pendingSlipCount;
         sections[0]['cards'][1]['count'] = pendingPassCount;
         sections[0]['cards'][2]['count'] = pendingPermissionCount;
         sections[0]['cards'][3]['count'] = pendingLeaveCount;
+        _pendingIdRequests = pendingIdCount;
         _isLoading = false;
       });
     } catch (e) {
@@ -225,7 +237,7 @@ class _SlipsDashboardScreenState extends State<SlipsDashboardScreen> {
             'description':
                 'Process new ID card requests. Verify payments and manage card issuance.',
             'color': Colors.red,
-            'count': 4,
+            'count': _pendingIdRequests,
           },
         ],
       },
