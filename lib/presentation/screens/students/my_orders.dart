@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:csms/presentation/providers/vending_provider.dart';
 import 'package:csms/helper/data/vending_items.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:pretty_qr_code/pretty_qr_code.dart';
 
 class MyOrdersScreen extends StatelessWidget {
   const MyOrdersScreen({super.key});
@@ -203,39 +203,63 @@ class MyOrdersScreen extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenSize = MediaQuery.of(context).size;
+    final qrSize = screenSize.width * 0.5; // Responsive QR size
 
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'QR Code',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 24),
-              QrImageView(
-                data: qrData,
-                version: QrVersions.auto,
-                size: 200,
-                eyeStyle: QrEyeStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                  eyeShape: QrEyeShape.square,
+        backgroundColor: Colors.white,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: screenSize.width * 0.85,
+            maxHeight: screenSize.height * 0.7,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Changed to min
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'QR Code',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.black87,
+                      ),
                 ),
-                dataModuleStyle: QrDataModuleStyle(
-                    color: isDark ? Colors.white : Colors.black,
-                    dataModuleShape: QrDataModuleShape.square),
-              ),
-              const SizedBox(height: 24),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: PrettyQr(
+                    data: qrData,
+                    size: qrSize,
+                    roundEdges: true,
+                    elementColor: Colors.black,
+                    image: const AssetImage('assets/images/CSMS_coloured.png'),
+                    errorCorrectLevel: QrErrorCorrectLevel.H,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Close',
+                    style: TextStyle(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
