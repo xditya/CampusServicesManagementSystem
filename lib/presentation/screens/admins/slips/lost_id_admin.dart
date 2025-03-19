@@ -62,6 +62,7 @@ class _LostIdAdminState extends State<LostIdAdmin> {
         'data': {
           'name': request['name'],
           'updatedBy': _currentUserEmail,
+          'date': request['requestDate'],
         },
       };
 

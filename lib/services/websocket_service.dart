@@ -161,6 +161,26 @@ class WebSocketService {
               'Notifications about leave form status changes',
             );
           }
+
+          // Handle ID card request notifications
+          if (data['type'] == 'id_card_update' &&
+              session.email == data['userEmail']) {
+            final status = data['status'];
+            final cardData = data['data'];
+
+            String title = 'ID Card Request ${status.toUpperCase()}';
+            String message = status == 'accepted'
+                ? 'Your ID card request has been approved'
+                : 'Your ID card request has been rejected by ${cardData['updatedBy']}';
+
+            await _showNotification(
+              title,
+              message,
+              'id_card_channel',
+              'ID Card Status',
+              'Notifications about ID card request status changes',
+            );
+          }
         } catch (e) {
           debugPrint('Error handling WebSocket message: $e');
           debugPrint('Raw message: $message');
