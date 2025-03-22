@@ -181,6 +181,31 @@ class WebSocketService {
               'Notifications about ID card request status changes',
             );
           }
+
+          // Handle 3D print request notifications
+          if (data['type'] == '3d_print_update' &&
+              session.email == data['userEmail']) {
+            final status = data['status'];
+            final printData = data['data'];
+            final comment = printData['comment'];
+
+            String title = '3D Print Request ${status.toUpperCase()}';
+            String message = status == 'approved'
+                ? 'Your print request for ${printData['fileName']} has been approved'
+                : 'Your print request for ${printData['fileName']} has been rejected';
+
+            if (comment != null && comment.isNotEmpty) {
+              message += '\nComment: $comment';
+            }
+
+            await _showNotification(
+              title,
+              message,
+              '3d_print_channel',
+              '3D Print Status',
+              'Notifications about 3D print request status changes',
+            );
+          }
         } catch (e) {
           debugPrint('Error handling WebSocket message: $e');
           debugPrint('Raw message: $message');
