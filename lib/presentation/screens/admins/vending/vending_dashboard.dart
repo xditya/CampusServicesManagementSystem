@@ -66,16 +66,45 @@ class _VendingDashboardState extends State<VendingDashboard> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(item.name),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Price: ₹${item.price.toStringAsFixed(2)}'),
-            if (pendingCount > 0) ...[
-              const SizedBox(height: 8),
-              Text('Pending Orders: $pendingCount'),
-            ],
-          ],
+        content: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Price: ₹${item.price.toStringAsFixed(2)}'),
+                if (pendingCount > 0) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    'Pending Orders',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  ..._orders
+                      .where((order) =>
+                          order['status'] == 'Placed' &&
+                          (order['items'] as Map<String, dynamic>)
+                              .containsKey(item.id))
+                      .map((order) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Card(
+                              child: ListTile(
+                                title: Text(order['email']),
+                                subtitle: Text(
+                                    'Quantity: ${(order['items'] as Map<String, dynamic>)[item.id]}'),
+                                trailing: Text(
+                                    '₹${(order['totalCost'] as num).toStringAsFixed(2)}'),
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                ],
+              ],
+            ),
+          ),
         ),
         actions: [
           TextButton(

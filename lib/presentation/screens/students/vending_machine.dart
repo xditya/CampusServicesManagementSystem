@@ -247,76 +247,112 @@ class VendingMachineBottomBar extends StatelessWidget {
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (bottomSheetContext) => Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Confirm Order',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            ...provider.selectedItems.entries.map((entry) {
-              final item = vendingItems.firstWhere((i) => i.id == entry.key);
-              return ListTile(
-                leading: Icon(item.icon),
-                title: Text(item.name),
-                trailing: Text('${entry.value}x ₹${item.price * entry.value}'),
-              );
-            }),
-            const Divider(),
-            ListTile(
-              title: const Text('Total'),
-              trailing: Text(
-                '₹${provider.totalCost.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.titleLarge,
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(bottomSheetContext),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: () async {
-                    Navigator.pop(bottomSheetContext);
-                    try {
-                      await provider.processPurchase();
-                      if (context.mounted) {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => SuccessAnimationScreen(
-                              title: 'Order Placed Successfully',
-                              message: 'Your order has been confirmed',
-                              onBackPressed: () {
-                                Navigator.pushReplacementNamed(
-                                    context, '/vending-machine');
-                              },
-                            ),
-                          ),
-                        );
-                      }
-                    } catch (error) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(error.toString())),
-                        );
-                      }
-                    }
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Confirm Order',
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
-                  child: const Text('Confirm'),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.5,
+                    ),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        ...provider.selectedItems.entries.map((entry) {
+                          final item =
+                              vendingItems.firstWhere((i) => i.id == entry.key);
+                          return ListTile(
+                            leading: Icon(item.icon),
+                            title: Text(item.name),
+                            trailing: Text(
+                                '${entry.value}x ₹${item.price * entry.value}'),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    title: const Text('Total'),
+                    trailing: Text(
+                      '₹${provider.totalCost.toStringAsFixed(2)}',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(bottomSheetContext),
+                        child: const Text('Cancel'),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: () async {
+                          Navigator.pop(bottomSheetContext);
+                          try {
+                            await provider.processPurchase();
+                            if (context.mounted) {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SuccessAnimationScreen(
+                                    title: 'Order Placed Successfully',
+                                    message: 'Your order has been confirmed',
+                                    onBackPressed: () {
+                                      Navigator.pushReplacementNamed(
+                                          context, '/vending-machine');
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (error) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(error.toString())),
+                              );
+                            }
+                          }
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Confirm'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

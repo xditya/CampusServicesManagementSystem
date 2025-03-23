@@ -204,63 +204,56 @@ class MyOrdersScreen extends StatelessWidget {
     if (!context.mounted) return;
 
     final screenSize = MediaQuery.of(context).size;
-    final qrSize = screenSize.width * 0.5; // Responsive QR size
+    final qrSize = screenSize.width * 0.9; // 90% of screen width
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.white,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: screenSize.width * 0.85,
-            maxHeight: screenSize.height * 0.7,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Changed to min
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'QR Code',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.black87,
-                      ),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: PrettyQr(
-                    data: qrData,
-                    size: qrSize,
-                    roundEdges: true,
-                    elementColor: Colors.black,
-                    // image: const AssetImage(
-                    // 'assets/images/CSMS_blackandwhite.png'),
-                    errorCorrectLevel: QrErrorCorrectLevel.H,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextButton(
+      builder: (context) => Dialog.fullscreen(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppBar(
+                title: const Text('QR Code'),
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Close',
-                    style: TextStyle(color: Theme.of(context).primaryColor),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: PrettyQr(
+                            data: qrData,
+                            size: qrSize,
+                            roundEdges: true,
+                            elementColor: Colors.black,
+                            errorCorrectLevel: QrErrorCorrectLevel.H,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
