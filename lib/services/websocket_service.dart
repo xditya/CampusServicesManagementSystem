@@ -206,6 +206,21 @@ class WebSocketService {
               'Notifications about 3D print request status changes',
             );
           }
+
+          // Handle vehicle pass notifications
+          if (data['type'] == 'vehicle_pass_update' &&
+              session.email == data['userEmail']) {
+            final status = data['status'];
+            final passData = data['data'];
+
+            await _showNotification(
+              'Vehicle Pass ${status.toUpperCase()}',
+              'Your vehicle pass request for ${passData['vehicleNumber']} at ${passData['time']} has been $status',
+              'vehicle_pass_channel',
+              'Vehicle Pass Status',
+              'Notifications about vehicle pass status changes',
+            );
+          }
         } catch (e) {
           debugPrint('Error handling WebSocket message: $e');
           debugPrint('Raw message: $message');

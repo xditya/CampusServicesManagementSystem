@@ -5,6 +5,7 @@ import 'package:csms/presentation/screens/admins/slips/leave_forms_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/lost_id_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/pink_slips_admin.dart';
 import 'package:csms/presentation/screens/admins/slips/slips_dashboard.dart';
+import 'package:csms/presentation/screens/admins/slips/vehicle_pass_admin.dart';
 import 'package:csms/presentation/screens/students/threed_printing.dart';
 import 'package:csms/presentation/screens/students/add_balance.dart';
 import 'package:csms/presentation/screens/students/dashboard.dart';
@@ -304,6 +305,16 @@ class AppRouter {
       handler: Handler(
         handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
           return const PrintRequestsAdmin();
+        },
+      ),
+      transitionType: TransitionType.fadeIn,
+    );
+
+    router.define(
+      '/admin/vehicle-passes',
+      handler: Handler(
+        handlerFunc: (BuildContext? context, Map<String, dynamic> params) {
+          return const VehiclePassAdmin();
         },
       ),
       transitionType: TransitionType.fadeIn,

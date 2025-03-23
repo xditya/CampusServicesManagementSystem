@@ -103,6 +103,40 @@ class NotificationService {
     );
   }
 
+  Future<void> sendVehiclePassNotification(
+    String status,
+    String vehicleNumber,
+    String time,
+  ) async {
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        'vehicle_pass_channel',
+        'Vehicle Pass Status',
+        channelDescription: 'Notifications about vehicle pass status changes',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
+
+      const notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: DarwinNotificationDetails(),
+      );
+
+      final title = 'Vehicle Pass ${status.toUpperCase()}';
+      final body =
+          'Your vehicle pass request for $vehicleNumber at $time has been $status';
+
+      await _localNotifications.show(
+        DateTime.now().millisecond,
+        title,
+        body,
+        notificationDetails,
+      );
+    } catch (e) {
+      debugPrint('Error sending vehicle pass notification: $e');
+    }
+  }
+
   // Optional: Generic method to handle different notification types
   Future<void> handleWebSocketNotification(Map<String, dynamic> data) async {
     try {
@@ -127,6 +161,13 @@ class NotificationService {
             data['status'],
             data['data']['dateFrom'],
             data['data']['dateTo'],
+          );
+          break;
+        case 'vehicle_pass':
+          await sendVehiclePassNotification(
+            data['status'],
+            data['body'].toString().split(' for ')[1].split(' has been ')[0],
+            data['data']['time'],
           );
           break;
         default:
