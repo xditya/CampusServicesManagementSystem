@@ -36,7 +36,6 @@ class ThreeDPrintDB {
           .sortBy('requestDate', descending: true);
 
       final requests = await collection.find(selector).toList();
-      print('Found ${requests.length} requests for admin: $adminEmail');
       return requests;
     } catch (e) {
       print('Error fetching requests: $e');

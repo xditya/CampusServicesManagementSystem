@@ -106,13 +106,11 @@ class _PrintRequestsAdminState extends State<PrintRequestsAdmin> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('File: ${request['fileName']}'),
+              Text('Name: ${request['name']}'),
               const SizedBox(height: 8),
-              Text('Material: ${request['material']}'),
+              Text('Hours: ${request['hours']}'),
               const SizedBox(height: 8),
-              Text('Color: ${request['color']}'),
-              const SizedBox(height: 8),
-              Text('Notes: ${request['notes'] ?? 'None'}'),
+              Text('Amount: ₹${request['amount'].toStringAsFixed(2)}'),
               const SizedBox(height: 16),
               if (request['status'] == 'pending') ...[
                 TextField(
@@ -244,8 +242,9 @@ class _PrintRequestsAdminState extends State<PrintRequestsAdmin> {
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
                 onTap: () => _showRequestDetails(request),
-                title: Text(request['fileName']),
-                subtitle: Text('Material: ${request['material']}'),
+                title: Text(request['name'] ?? 'Unknown'),
+                subtitle: Text(
+                    'Hours: ${request['hours']} | ₹${request['amount'].toStringAsFixed(2)}'),
                 trailing: request['status'] == 'pending'
                     ? Row(
                         mainAxisSize: MainAxisSize.min,

@@ -246,8 +246,8 @@ class MyOrdersScreen extends StatelessWidget {
                     size: qrSize,
                     roundEdges: true,
                     elementColor: Colors.black,
-                    image: const AssetImage(
-                        'assets/images/CSMS_blackandwhite.png'),
+                    // image: const AssetImage(
+                    // 'assets/images/CSMS_blackandwhite.png'),
                     errorCorrectLevel: QrErrorCorrectLevel.H,
                   ),
                 ),

@@ -164,6 +164,8 @@ class _LostIdPageState extends State<LostIdPage> {
 
   Widget _buildReceipt() {
     final bool isRejected = _receipt!['status'] == 'rejected';
+    final bool isApproved = _receipt!['status'] == 'approved';
+    final bool showApplyAgain = isRejected || isApproved;
 
     return Card(
       child: Padding(
@@ -187,13 +189,19 @@ class _LostIdPageState extends State<LostIdPage> {
                   decoration: BoxDecoration(
                     color: isRejected
                         ? Colors.red.withOpacity(0.1)
-                        : Colors.orange.withOpacity(0.1),
+                        : isApproved
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     _receipt!['status'].toUpperCase(),
                     style: TextStyle(
-                      color: isRejected ? Colors.red : Colors.orange,
+                      color: isRejected
+                          ? Colors.red
+                          : isApproved
+                              ? Colors.green
+                              : Colors.orange,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -213,15 +221,16 @@ class _LostIdPageState extends State<LostIdPage> {
                 DateFormat('dd/MM/yyyy')
                     .format(DateTime.parse(_receipt!['requestDate']))),
             _receiptRow('Amount Paid', '₹${_receipt!['amountPaid']}'),
-            if (isRejected) ...[
+            if (showApplyAgain) ...[
               const Divider(height: 32),
-              Text(
-                'Rejected by: ${(_receipt!['rejectedBy'] as List).first}',
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w500,
+              if (isRejected)
+                Text(
+                  'Rejected by: ${(_receipt!['rejectedBy'] as List).first}',
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
