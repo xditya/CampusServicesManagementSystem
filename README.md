@@ -1,16 +1,57 @@
-# csms
+# 🎓 Campus Services Management System (CSMS)
 
-A new Flutter project.
+A comprehensive mobile application to streamline and digitize various college services.
 
-## Getting Started
+## 🌟 Key Features
 
-This project is a starting point for a Flutter application.
+<table>
+  <tr>
+    <td>💳 <b>Digital Wallet</b><br/>Secure payments & transactions</td>
+    <td>🖨️ <b>Print Services</b><br/>Document printing with QR tracking</td>
+    <td>🚗 <b>Vehicle Pass</b><br/>Digital pass management</td>
+  </tr>
+  <tr>
+    <td>🎫 <b>ID Cards</b><br/>Lost card replacement system</td>
+    <td>🏢 <b>Lab Access</b><br/>Permission & booking system</td>
+    <td>🤖 <b>Smart Vending</b><br/>QR-based purchases</td>
+  </tr>
+</table>
 
-A few resources to get you started if this is your first Flutter project:
+## 📱 Screenshots
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+<table>
+  <tr>
+    <td><img src="assets/screenshots/dashboard.png"></td>
+    <td><img src="assets/screenshots/admin.png"></td>
+  </tr>
+</table>
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🚀 Quick Start
+
+1. Set up [websockets](https://github.com/xditya/csms-notifs/) & [appwrite](https://appwrite.io/)
+2. Clone & install:
+```bash
+git clone https://github.com/xditya/CampusServicesManagementSystem
+flutter pub get
+```
+3. Configure `.env` and run:
+```bash
+flutter run
+```
+
+## 🔗 Related Projects
+- [Websockets](https://github.com/xditya/csms-notifs)
+- [Vending API](https://github.com/xditya/csms-api)
+- [Hardware (ESP32, ESP32CAM)](https://github.com/xditya/csms-hardware)
+
+---
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><img src="assets/images/CSMS_coloured.png" height="60px" alt="CSMS"></td>
+      <td align="center"><img src="assets/images/appwrite.png" height="60px" alt="Appwrite"></td>
+      <td align="center"><img src="assets/images/mongodb.png" height="60px" alt="MongoDB"></td>
+    </tr>
+  </table>
+</div>
