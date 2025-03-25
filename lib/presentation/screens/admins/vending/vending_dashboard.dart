@@ -99,8 +99,7 @@ class _VendingDashboardState extends State<VendingDashboard> {
                                     '₹${(order['totalCost'] as num).toStringAsFixed(2)}'),
                               ),
                             ),
-                          ))
-                      .toList(),
+                          )),
                 ],
               ],
             ),

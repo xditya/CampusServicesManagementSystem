@@ -2,7 +2,6 @@ import 'package:csms/helper/config.dart';
 import 'package:csms/helper/database/gate_pass_db.dart' as gate_pass_db;
 import 'package:csms/presentation/widgets/bottom_navbar_admin.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:csms/presentation/screens/admins/slips/pass_details_dialog.dart';
 
 class GatePassAdmin extends StatefulWidget {
